@@ -1,0 +1,3 @@
+[submodule "automata-be"]
+	path = automata-be
+	url = https://github.com/emanuelemuzio/automata.git
