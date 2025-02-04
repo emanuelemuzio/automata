@@ -1,56 +1,29 @@
 version: '3.8'
 
 services:
-  automata-ai-db:
-    image: postgres:16
-    container_name: automata-ai-db
+  db:
+    build:
+      context: ./db   
+    container_name: automata-db
     restart: always
     environment:
-      POSTGRES_USER: aiuser
-      POSTGRES_PASSWORD: aipassword
-      POSTGRES_DB: automata_ai_db
+      POSTGRES_USER: automatauser
+      POSTGRES_PASSWORD: automatapassword
     ports:
-      - "5433:5432"  
+      - "5432:5432"
     volumes:
-      - ai_db_data:/var/lib/postgresql/data
+      - db_data:/var/lib/postgresql/data   
+    command: ["postgres"]
 
-  automata-be-db:
-    image: postgres:16
-    container_name: automata-be-db
-    restart: always
-    environment:
-      POSTGRES_USER: beuser
-      POSTGRES_PASSWORD: bepassword
-      POSTGRES_DB: automata_be_db
-    ports:
-      - "5432:5432"  # Backend mantiene la porta standard 5432
-    volumes:
-      - be_db_data:/var/lib/postgresql/data
-
-  ## Servizio AI ##
-  automata-ai:
-    build: ./automata-ai
-    container_name: automata-ai
+  backend:
+    build:
+      context: ./backend   
+    container_name: automata-backend
     restart: always
     depends_on:
-      - automata-ai-db
-    environment:
-      DATABASE_URL: postgresql+psycopg2://aiuser:aipassword@automata-ai-db:5432/automata_ai_db
+      - db
     ports:
-      - "5000:5000"  # Esempio di porta per il servizio AI
-
-  ## Backend FastAPI ##
-  automata-be:
-    build: ./automata-be
-    container_name: automata-be
-    restart: always
-    depends_on:
-      - automata-be-db
-    environment:
-      DATABASE_URL: postgresql+psycopg2://beuser:bepassword@automata-be-db:5432/automata_be_db
-    ports:
-      - "8000:8000"  # FastAPI esposto su porta 8000
+      - "8000:8000"
 
 volumes:
-  ai_db_data:
-  be_db_data:
+  db_data:
