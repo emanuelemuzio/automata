@@ -15,6 +15,7 @@ from uuid import uuid4
 from db import engine, vector_engine
 from automata import Automata
 from state import State
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -90,6 +91,14 @@ SessionDep = Annotated[Session, Depends(get_session)]
 VecSessionDep = Annotated[Session, Depends(get_vector_session)]
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[os.getenv('FRONTEND_URL')],  # Modifica con il dominio del tuo frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
@@ -125,7 +134,7 @@ async def read_users_me(
 ):
     return current_user
 
-@app.post("/users/")
+@app.post("/users/create")
 async def create_user(
     current_user: Annotated[UserBase, Depends(get_current_active_user)],
     user: User, 
@@ -142,7 +151,7 @@ async def create_user(
             detail="User already exists"
         )
          
-@app.post("/upload_document")
+@app.post("/documents/upload")
 async def create_upload_file(
     current_user: Annotated[UserBase, Depends(get_current_active_user)],
     file: Annotated[UploadFile, File()],
@@ -192,7 +201,7 @@ async def create_upload_file(
                 detail="Unknown error"
             )
         
-@app.get("/collection/get_user_collection")
+@app.get("/collection/user_collections")
 async def get_user_collection_info(
     vector_session: VecSessionDep,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
@@ -207,7 +216,7 @@ async def get_user_collection_info(
     except MultipleResultsFound:
         print("Multiple results found")
         
-@app.get("/documents/get_user_documents")
+@app.get("/documents/user_documents")
 async def get_user_collection_info(
     session: SessionDep,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]

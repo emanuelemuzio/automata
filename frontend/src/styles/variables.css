@@ -1,0 +1,31 @@
+/* Stili generali */
+:root {
+    --font-family: 'Inter', sans-serif;
+  
+    /* Tema Chiaro */
+    --bg-color: #f9f9f9;
+    --text-color: #333;
+    --primary-color: #007bff;
+    --secondary-color: #f1f1f1;
+    --border-color: #ddd;
+  }
+  
+  /* Tema Scuro (basato sulla preferenza del sistema) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #181818;
+      --text-color: #f1f1f1;
+      --primary-color: #1e90ff;
+      --secondary-color: #222;
+      --border-color: #444;
+    }
+  }
+  
+  /* Applica le variabili globali */
+  body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
