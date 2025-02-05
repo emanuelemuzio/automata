@@ -3,10 +3,10 @@ from embeddings import get_embeddings
 from rag import hub_pull, get_wrapper
 from text_splitter import get_text_splitter
 from vector_store import get_vectore_store
-from uuid import uuid4
 from llm import get_llm
 from state import State
 from doc_loader import DOCS_ROOT
+from uuid import uuid4
 
 class Automata:
 
@@ -27,23 +27,32 @@ class Automata:
             self.prompt = get_wrapper(template)
             
         self.text_splitter = get_text_splitter()
-        self.vector_store = get_vectore_store()
         self.llm = get_llm()
         self.wrapper = get_wrapper()
         self.docs_root = DOCS_ROOT 
         
-    def save_document(self, document_name):
+    def save_document(self, document_name, collection_name='default'):
+        
+        if collection_name is not None:   
+            self.vector_store = get_vectore_store(collection_name=collection_name)
+        else:
+            self.vector_store = get_vectore_store()
+        
         doc_pages = self.doc_load(document_name)
+        
+        for doc_p in doc_pages:
+            doc_p.metadata['collection_owner'] = collection_name
+        
         doc_stored = self.store_docs(doc_pages)
         
-        return True
+        return doc_pages
         
     def split_docs(self, documents):
-        return self.text_splitter.split_documents(documents)
+        return self.text_splitter.split_documents(documents) 
             
     def doc_load(self, doc_name):
         
-        doc_path = f"{self.docs_root}/{doc_name}"
+        doc_path = f"{DOCS_ROOT}/{doc_name}" 
         
         loader = PyPDFLoader(doc_path)
         pages = []
@@ -58,15 +67,24 @@ class Automata:
         return state
     
     def store_docs(self, docs):
-        uuids = [str(uuid4()) for _ in range(len(docs))]
-    
-        vector_store = get_vectore_store()
-        vector_store.add_documents(documents=docs, ids=uuids)
+        uuids = [str(uuid4()) for x in docs]
+        
+        self.vector_store.add_documents(documents=docs, ids=uuids)
         
         return True
     
     def retrieve(self, state : State):
-        retrieved_docs = self.vector_store.similarity_search(state['question'], k=2)
+        
+        if state['collection_name']:   
+            self.vector_store = get_vectore_store(collection_name=state['collection_name'])
+        else:
+            self.vector_store = get_vectore_store()
+        
+        retrieved_docs = self.vector_store.similarity_search(state['question'], k=2, filter={"collection_owner" : state['collection_name']})
+        return retrieved_docs
+    
+    def retrieve_by_metadata(self, md_filter):
+        retrieved_docs = self.vector_store.similarity_search(filter=md_filter)
         return retrieved_docs
         
     def generate(self, state : State):
@@ -80,9 +98,4 @@ class Automata:
         )
         
         response = self.llm.invoke(messages)
-        return response.content
-        
-automata = Automata(template='template-1')
-test_state = State({"question" : "Cosa sono le compresse?"})
-response = automata.invoke(test_state)
-print(response['answer'])
+        return response.content 

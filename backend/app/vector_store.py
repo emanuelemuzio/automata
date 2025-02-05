@@ -12,15 +12,14 @@ POSTGRES_DB = os.getenv("POSTGRES_DB_PGV")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
 POSTGRES_PORT = int(os.getenv("POSTGRES_PORT"))
 TABLE_NAME = os.getenv("TABLE_NAME")
-COLLECTION_NAME = os.getenv('COLLECTION_NAME')
 
 CONNECTION_STRING = f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
-def get_vectore_store():
+def get_vectore_store(collection_name='default-collection'):
 
     vector_store = PGVector(
         connection=CONNECTION_STRING,
-        collection_name=COLLECTION_NAME,
+        collection_name=collection_name,
         embeddings=get_embeddings(),
         use_jsonb=True
     )
