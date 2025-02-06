@@ -33,3 +33,6 @@ class LangChainCollection(SQLModel, table=True):
     
 class ChatQuestion(BaseModel):
     question : str
+    
+class RefreshToken(BaseModel):
+    refresh_token : str

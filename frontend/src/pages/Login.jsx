@@ -13,10 +13,10 @@ function Login() {
   const isAuthenticated = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && location.pathname === "/login") {
+    if (isAuthenticated) {
       navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, navigate, location.pathname]);
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,10 +25,9 @@ function Login() {
     const response = await loginUser(username, password);
 
     if (response.success) {
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("token_type", response.tokenType);
+      localStorage.setItem("token", response.access_token);
+      localStorage.setItem("refresh_token", response.refresh_token);
 
-      // Se l'utente veniva da una rotta protetta, lo riporta lì
       const redirectTo = location.state?.from?.pathname || "/dashboard";
       navigate(redirectTo, { replace: true });
     } else {
@@ -40,7 +39,7 @@ function Login() {
     <div className="login-container">
       <h2>Accedi</h2>
       <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+        <input type="text" placeholder="Email" value={username} onChange={(e) => setUsername(e.target.value)} required />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Login</button>
       </form>

@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import config from "../config";
 
 export const fetchData = async (endpoint, options = {}) => {
   const token = localStorage.getItem("token");
@@ -10,7 +10,7 @@ export const fetchData = async (endpoint, options = {}) => {
   };
 
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch(`${config.BACKEND_URL}${endpoint}`, {
       ...options,
       headers,
     });

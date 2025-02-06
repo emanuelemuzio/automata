@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import Sidebar from "../components/Sidebar";
-import "../styles/ProtectedLayout.css";  
+import "../styles/ProtectedLayout.css";
 
 function ProtectedLayout({ children }) {
   const isAuthenticated = useAuth();

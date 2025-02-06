@@ -126,7 +126,26 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    
+    refresh_token = create_access_token({"sub": user.username}, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+
+    return Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
+
+@app.post("/refresh-token")
+async def refresh_access_token(request: RefreshToken):
+    refresh_token = request.refresh_token
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        new_access_token = create_access_token({"sub": username}, timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        return {"access_token": new_access_token, "token_type": "bearer"}
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 @app.get("/users/me/", response_model=User)
 async def read_users_me(
