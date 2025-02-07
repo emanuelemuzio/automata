@@ -16,6 +16,7 @@ from db import engine, vector_engine
 from automata import Automata
 from state import State
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 load_dotenv()
 
@@ -246,12 +247,76 @@ async def get_user_collection_info(
 
 @app.post("/chat/question")
 async def create_upload_file(
+    session: SessionDep,
     chat_question : ChatQuestion,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
     state = State({"question" : chat_question.question, "collection_name" : current_user.username})
     response = automata.invoke(state)
     
+    chat_message = Chat(question=chat_question, answer=response['answer'], user_id=current_user.id)
+    
+    session.add(chat_message)
+    session.commit()
+    session.refresh(chat_message)
+    
     return {
         "answer" : response['answer']
     }
+    
+@app.get("/documents/download/{document_id}")
+async def download_document(
+    document_id: int, 
+    current_user: Annotated[UserBase, Depends(get_current_active_user)],
+    session: SessionDep,
+):
+    
+    document = session.exec(select(Document).where(Document.id == document_id)).one_or_none()
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Documento non trovato, record non presente")
+
+    document_path = f"{docs_root}/{document.hashname}"
+
+    if not os.path.exists(document_path):
+        raise HTTPException(status_code=404, detail="Documento non trovato, file non presente")
+        
+
+    return FileResponse(document_path, filename=os.path.basename(document_path), media_type="application/pdf")
+
+@app.post("/chat/topics")
+async def create_chat_topic(
+    chatTopicCreate : ChatTopicCreate, 
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)):
+    
+    name = chatTopicCreate.name
+
+    topic_count = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id)).all()
+    
+    if len(topic_count) >= 10: 
+        raise HTTPException(status_code=400, detail="Limite massimo di 10 chat raggiunto.")
+
+    topic = ChatTopic(name=name, user_id=current_user.id)
+    session.add(topic)
+    session.commit()
+    session.refresh(topic)
+    
+    return topic
+
+@app.get("/chat/topics")
+async def get_user_topics(
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    topics = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id)).all()
+    return topics
+
+@app.get("/chat/topics/{idx}")
+async def get_user_topics(
+    idx : int,
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    topic = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id and ChatTopic.id == idx)).one_or_none()
+    return topic

@@ -61,7 +61,7 @@ export async function fetchWithAuth(url, options = {}) {
   if (!options.headers) options.headers = {};
   options.headers["Authorization"] = `Bearer ${token}`;
 
-  let response = await fetch(url, options);
+  let response = await fetch(`${config.BACKEND_URL}${url}`, options);
 
   if (response.status === 401) { // Token scaduto
     token = await refreshAccessToken();
@@ -73,7 +73,7 @@ export async function fetchWithAuth(url, options = {}) {
     }
 
     options.headers["Authorization"] = `Bearer ${token}`;
-    response = await fetch(`${BACKEND_URL}${url}`, options); // Ritenta la richiesta con il nuovo token
+    response = await fetch(`${config.BACKEND_URL}${url}`, options); // Ritenta la richiesta con il nuovo token
   }
 
   return response;

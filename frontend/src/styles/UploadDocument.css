@@ -1,0 +1,155 @@
+:root {
+    /* 🌞 Modalità Chiara */
+    --background-light: #121212;
+    --text-light: #222;
+    --border-light: #ccc;
+    --button-bg-light: #007bff;
+    --button-hover-light: #0056b3;
+    --input-bg-light: #f9f9f9;
+    --input-border-light: #bbb;
+    --error-text-light: #d9534f;
+    --success-text-light: #28a745;
+  
+    /* 🌙 Modalità Scura */
+    --background-dark: #ffffff;
+    --text-dark: #f1f1f1;
+    --border-dark: #444;
+    --button-bg-dark: #1a73e8;
+    --button-hover-dark: #1669c1;
+    --input-bg-dark: #1e1e1e;
+    --input-border-dark: #555;
+    --error-text-dark: #ff6b6b;
+    --success-text-dark: #34c759;
+  }
+  
+  /* 🌍 Generale */
+  body {
+    background-color: var(--background-light);
+    color: var(--text-light);
+    font-family: Arial, sans-serif;
+    transition: background 0.3s, color 0.3s;
+  }
+  
+  /* 📂 Contenitore */
+  .upload-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: var(--background-dark);
+    border-radius: 8px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    border: 1px solid var(--border-light);
+  }
+  
+  /* 📄 Titolo */
+  h2 {
+    font-size: 24px;
+    color: var(--text-light);
+    margin-bottom: 15px;
+  }
+  
+  /* 📂 Input file */
+  input[type="file"] {
+    display: block;
+    margin: 10px auto;
+    padding: 8px;
+    width: 90%;
+    max-width: 400px;
+    background: var(--input-bg-light);
+    border: 1px solid var(--input-border-light);
+    color: var(--text-light);
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* 📄 Nome File */
+  .file-name {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-top: 10px;
+  }
+  
+  /* 🎯 Bottone Upload */
+  .upload-button {
+    padding: 12px 18px;
+    background-color: var(--button-bg-light);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: background 0.3s, transform 0.1s;
+  }
+  
+  .upload-button:hover:not(:disabled) {
+    background-color: var(--button-hover-light);
+    transform: scale(1.05);
+  }
+  
+  .upload-button:disabled {
+    background-color: #777;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  /* 🚨 Messaggi di stato */
+  .upload-status {
+    margin-top: 12px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .upload-status.success {
+    color: var(--success-text-light);
+  }
+  
+  .upload-status.error {
+    color: var(--error-text-light);
+  }
+  
+  /* 🌙 Modalità Scura */
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: var(--background-dark);
+      color: var(--text-dark);
+    }
+  
+    .upload-container {
+      background: var(--background-dark);
+      border: 1px solid var(--border-dark);
+      box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.1);
+    }
+  
+    h2 {
+      color: var(--text-dark);
+    }
+  
+    input[type="file"] {
+      background: var(--input-bg-dark);
+      border: 1px solid var(--input-border-dark);
+      color: var(--text-dark);
+    }
+  
+    .file-name {
+      color: var(--text-dark);
+    }
+  
+    .upload-button {
+      background-color: var(--button-bg-dark);
+    }
+  
+    .upload-button:hover:not(:disabled) {
+      background-color: var(--button-hover-dark);
+    }
+  
+    .upload-status.success {
+      color: var(--success-text-dark);
+    }
+  
+    .upload-status.error {
+      color: var(--error-text-dark);
+    }
+  }
+  

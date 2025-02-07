@@ -42,6 +42,8 @@ function Sidebar() {
         )}
       </div>
 
+      <Link to="/chat" className="sidebar-link">Chat</Link>
+
       <button className="logout-button" onClick={handleLogout}>Logout</button>
     </aside>
   );
