@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { loginUser } from "../api/authService";
 import { useNavigate, useLocation } from "react-router-dom";
-import useAuth from "../hooks/useAuth"; 
+import useAuth from "../hooks/useAuth";
 import "../styles/Login.css";
 
 function Login() {
@@ -36,15 +36,26 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Accedi</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Email" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <button type="submit">Login</button>
-      </form>
-      {error && <p className="error-message">{error}</p>}
-    </div>
+    <main className="form-signin">
+      <div className="container">
+        <form onSubmit={handleSubmit}>
+          <h1 className="h3 mb-3 fw-normal">Please sign in</h1>
+
+          <div className="form-floating">
+            <input type="email" className="form-control" id="floatingInput" placeholder="Email" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <label htmlFor="floatingInput">Email address</label>
+          </div>
+          <div className="form-floating">
+            <input type="password" className="form-control" id="floatinPassword" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <label htmlFor="floatingPassword">Password</label>
+          </div>
+
+          <button className="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        </form>
+        {error && <p className="error-message">{error}</p>}
+      </div>
+    </main>
+
   );
 }
 

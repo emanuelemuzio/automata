@@ -15,11 +15,9 @@ function AppRoutes() {
     <Router>
       <Navbar />
       <Routes>
-        {/* Pagine pubbliche */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Pagine protette con layout */}
         <Route path="/dashboard" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
         <Route path="/create-user" element={<ProtectedLayout><CreateUser /></ProtectedLayout>} />
         <Route path="/user-documents" element={<ProtectedLayout><UserDocuments /></ProtectedLayout>} />
