@@ -17,6 +17,8 @@ from automata import Automata
 from state import State
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from pathlib import Path
+from sqlalchemy import cast, Integer
 
 load_dotenv()
 
@@ -46,7 +48,6 @@ def authenticate_user(username: str, password: str):
     user = get_user(username)
     if not user:
         return False
-    print(password, user.pwd)
     if not verify_password(password, user.pwd):
         return False
     return user
@@ -114,7 +115,7 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 @app.post("/token")
-async def login_for_access_token(
+async def get_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()] 
 ) -> Token:
     
@@ -150,7 +151,7 @@ async def refresh_access_token(request: RefreshToken):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @app.get("/users/me/", response_model=User)
-async def read_users_me(
+async def get_my_user_info(
     current_user: Annotated[UserBase, Depends(get_current_active_user)] 
 ):
     return current_user
@@ -171,15 +172,43 @@ async def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User already exists"
         )
+        
+@app.post("/users/edit")
+async def edit_user(
+    current_user: Annotated[UserBase, Depends(get_current_active_user)],
+    user: User, 
+    session: SessionDep) -> User:
+    try:
+        user_entity = session.exec(select(User).where(User.id == user.id)).one()
+        
+        user_entity.username = user.username
+        user_entity.full_name = user.full_name
+        user_entity.role = user.role
          
+        session.add(user_entity)
+        session.commit()
+        return user
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User already exists"
+        )
+        
 @app.post("/documents/upload")
-async def create_upload_file(
+async def upload_document(
     current_user: Annotated[UserBase, Depends(get_current_active_user)],
     file: Annotated[UploadFile, File()],
     session: SessionDep
 ):
     try:
         if is_valid_content_type(file.content_type):
+            
+            document = Document(
+                filename=file.filename,
+                extension=file.content_type,
+                visible=True,
+                user_id=current_user.id
+            )
             
             results = session.exec(select(Document).where(Document.filename == file.filename and Document.user_id == current_user.id)).all()
             
@@ -189,33 +218,33 @@ async def create_upload_file(
                     detail="A file with that name is already present"
                 )
             
-            hashed_name = f"{str(uuid4())}.pdf"
+            hashed_name = f"{str(uuid4())}"
             collection_name = current_user.username
             
-            file_location = f"{docs_root}/{hashed_name}"
-            with open(file_location, "wb+") as file_object:
+            document.hashname = hashed_name
+            
+            file_location = f'{docs_root}/{hashed_name}.pdf'
+            
+            Path(docs_root).mkdir(parents=True, exist_ok=True)
+            
+            with open(file_location, 'wb+') as file_object:
                 file_object.write(file.file.read())
-                                
-            result = automata.save_document(hashed_name, collection_name)
-            
-            document = Document(
-                filename=file.filename,
-                extension=file.content_type,
-                hashname=hashed_name,
-                visible=True,
-                user_id=current_user.id
-            )
-            
+                                            
             session.add(document)
             session.commit()
             
+            document = session.exec(select(Document).where(
+                Document.user_id == current_user.id and
+                Document.filename == file.filename
+            )).one()
+            
+            result = automata.save_document(document, collection_name)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid file type"
             )
-    except InternalError:
-        os.remove(f"{docs_root}/{file.filename}")
+    except InternalError: 
         
         raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -223,22 +252,21 @@ async def create_upload_file(
             )
         
 @app.get("/collection/user_collections")
-async def get_user_collection_info(
+async def get_user_collections(
+    session : SessionDep,
     vector_session: VecSessionDep,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
     
-    try:
-        results = vector_session.exec(select(LangChainCollection).where(LangChainCollection.name == current_user.username)).one()
+    user_documents = session.exec(select(Document).where(Document.user_id == current_user.id)).all()
+    documents_hashes = list(map(lambda x : x.hashname, user_documents))
+    
+    results = vector_session.exec(select(LangChainCollection).where(LangChainCollection.name.in_(documents_hashes))).all()
         
-        return results
-    except NoResultFound: 
-        print("No result found")
-    except MultipleResultsFound:
-        print("Multiple results found")
+    return results 
         
 @app.get("/documents/user_documents")
-async def get_user_collection_info(
+async def get_user_documents(
     session: SessionDep,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
@@ -246,16 +274,24 @@ async def get_user_collection_info(
     results = session.exec(select(Document).where(Document.user_id == current_user.id)).all()
     return results
 
-@app.post("/chat/question")
-async def create_upload_file(
+@app.post("/chat/messages")
+async def pose_chat_question(
     session: SessionDep,
-    chat_question : ChatQuestion,
+    vector_session : VecSessionDep,
+    chat_question : ChatRequest,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
-    state = State({"question" : chat_question.question, "collection_name" : current_user.username})
-    response = automata.invoke(state)
+    question = chat_question.question
+    topic_id = chat_question.topic_id
     
-    chat_message = Chat(question=chat_question, answer=response['answer'], user_id=current_user.id)
+    db_filter = {
+        "user_id" : current_user.id
+    }
+    
+    state = State({"question" : chat_question.question, "db_filter" : db_filter})
+    response = automata.invoke(state)
+        
+    chat_message = Chat(question=question, answer=response['answer'], user_id=current_user.id, topic_id=topic_id)
     
     session.add(chat_message)
     session.commit()
@@ -265,7 +301,7 @@ async def create_upload_file(
         "answer" : response['answer']
     }
     
-@app.get("/documents/download/{document_id}")
+@app.get("/documents/download")
 async def download_document(
     document_id: int, 
     current_user: Annotated[UserBase, Depends(get_current_active_user)],
@@ -313,8 +349,18 @@ async def get_user_topics(
     topics = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id)).all()
     return topics
 
+@app.get("/chat/messages")
+async def get_messages_by_topic(
+    topic_id : int,
+    session: SessionDep,
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    chat = session.exec(select(Chat).where(Chat.topic_id == topic_id).order_by(Chat.created_at.asc())).all()
+    
+    return chat
+
 @app.get("/users")
-async def get_user_topics(
+async def get_all_users(
     session: SessionDep, 
     current_user: UserBase = Depends(get_current_active_user)
 ):
@@ -327,7 +373,7 @@ async def get_user_topics(
     )
     
 @app.get("/user/delete")
-async def get_user_topics(
+async def delete_user(
     user_id : int,
     session: SessionDep, 
     current_user: UserBase = Depends(get_current_active_user)
@@ -335,6 +381,9 @@ async def get_user_topics(
     try:
         if(current_user.role == 'ADMIN'):
             user = session.exec(select(User).where(User.id == user_id)).one()
+            
+            cascade_user(user)
+            
             session.delete(user)
             session.commit()
             return 
@@ -346,14 +395,120 @@ async def get_user_topics(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User ID not found"
-        )
+        ) 
+
+def cascade_user(user, session, vector_session):
+    document_list = session.exec(select(Document).where(Document.user_id == user.id)).all()
+    
+    for document in document_list:
+        cascade_document(document, vector_session)
+        session.delete(document)
         
+    collection = vector_session.exec(select(LangChainCollection).where(LangChainCollection.name == str(user.id))). one_or_none()
+    
+    if collection:
+        
+        embeddings = vector_session.exec(select(LangChainEmbedding).filter(LangChainEmbedding.collection_id == collection.uuid)).all()
+        
+        for e in embeddings:
+            vector_session.delete(e)
+            
+        vector_session.delete(collection)
+        
+def cascade_document(document, vector_session):
+    
+    statement = select(LangChainEmbedding).where(
+        cast(LangChainEmbedding.cmetadata["document_id"].astext, Integer) == document.id
+    )
+    
+    embeddings = vector_session.exec(statement).all()
+    
+    for e in embeddings:
+        print(e.id)
+        vector_session.delete(e)
+        
+@app.delete("/documents")
+async def delete_user(
+    document_id : int,
+    session: SessionDep, 
+    vector_session: VecSessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+): 
+    try:
+        document = session.exec(select(Document).where(Document.id == document_id)).one() 
+    except NoResultFound:
+        print(NoResultFound)
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found"
+        )
+    
+    cascade_document(document, vector_session)
+        
+    session.delete(document)
+    vector_session.commit()
+    session.commit()
+    
+    os.remove(f"{docs_root}/{document.hashname}.pdf")
+    
+    return 
+
+@app.get("/user/toggle")
+async def toggle_user(
+    user_id : int,
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    try:
+        if(current_user.role == 'ADMIN'):
+            user = session.exec(select(User).where(User.id == user_id)).one()
+            
+            user.disabled = not user.disabled
+            
+            session.add(user)
+            session.commit()
+            return 
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not an admin"
+        )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User ID not found"
+        )        
 
 @app.get("/chat/topics")
-async def get_user_topics(
+async def get_single_topic(
     idx : int,
     session: SessionDep, 
     current_user: UserBase = Depends(get_current_active_user)
 ):
     topic = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id and ChatTopic.id == idx)).one_or_none()
     return topic
+
+@app.post("/users/reset_password")
+async def update_user_password(
+    request : PasswordUpdate,
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    try:
+        if(current_user.role == 'ADMIN'):
+            user = session.exec(select(User).where(User.id == request.user_id)).one()
+            
+            user.pwd = get_password_hash(request.password)
+            
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return 
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not an admin"
+        )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User ID not found"
+        )

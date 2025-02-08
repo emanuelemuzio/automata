@@ -76,41 +76,5 @@
   .download-button:hover {
     background-color: var(--button-hover-light);
   }
-  
-  /* 🎨 Tema scuro */
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: var(--background-dark);
-      color: var(--text-dark);
-    }
-  
-    .documents-container {
-      background: var(--table-row-dark);
-      box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.1);
-    }
-  
-    .documents-table {
-      background: var(--table-row-dark);
-    }
-  
-    .documents-table th {
-      background-color: var(--table-header-dark);
-    }
-  
-    .documents-table th, .documents-table td {
-      border-bottom: 1px solid var(--border-dark);
-    }
-  
-    .documents-table tr:hover {
-      background-color: var(--hover-dark);
-    }
-  
-    .download-button {
-      background-color: var(--button-bg-dark);
-    }
-  
-    .download-button:hover {
-      background-color: var(--button-hover-dark);
-    }
-  }
+   
   

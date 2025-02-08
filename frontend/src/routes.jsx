@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import ChatTopic from "./pages/ChatTopic";
 import Admin from "./pages/Admin"
+import Documents from "./pages/Documents";
 
 function AppRoutes() {
   return (
@@ -20,7 +21,7 @@ function AppRoutes() {
 
         <Route path="/dashboard" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
         <Route path="/create-user" element={<ProtectedLayout><CreateUser /></ProtectedLayout>} />
-        <Route path="/user-documents" element={<ProtectedLayout><UserDocuments /></ProtectedLayout>} />
+        <Route path="/documents" element={<ProtectedLayout><Documents /></ProtectedLayout>} />
         <Route path="/upload-documents" element={<ProtectedLayout><UploadDocuments /></ProtectedLayout>} />
         <Route path="/chat/topics/:topicId" element={<ProtectedLayout> <ChatTopic /> </ProtectedLayout>} />
         <Route path="/admin" element={<ProtectedLayout> <Admin /> </ProtectedLayout>} />

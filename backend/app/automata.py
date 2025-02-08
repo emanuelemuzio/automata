@@ -31,17 +31,23 @@ class Automata:
         self.wrapper = get_wrapper()
         self.docs_root = DOCS_ROOT 
         
-    def save_document(self, document_name, collection_name='default'):
+    def add_metadata(self, doc_pages, document):
+        for doc_p in doc_pages:
+            doc_p.metadata['user_id'] = document.user_id
+            doc_p.metadata['document_id'] = document.id
+        
+        return doc_pages
+        
+    def save_document(self, document, collection_name):
         
         if collection_name is not None:   
-            self.vector_store = get_vectore_store(collection_name=collection_name)
+            self.vector_store = get_vectore_store(collection_name=str(document.user_id))
         else:
             self.vector_store = get_vectore_store()
         
-        doc_pages = self.doc_load(document_name)
+        doc_pages = self.doc_load(document)
         
-        for doc_p in doc_pages:
-            doc_p.metadata['collection_owner'] = collection_name
+        doc_pages = self.add_metadata(doc_pages, document)
         
         doc_stored = self.store_docs(doc_pages)
         
@@ -50,9 +56,9 @@ class Automata:
     def split_docs(self, documents):
         return self.text_splitter.split_documents(documents) 
             
-    def doc_load(self, doc_name):
+    def doc_load(self, document):
         
-        doc_path = f"{DOCS_ROOT}/{doc_name}" 
+        doc_path = f"{DOCS_ROOT}/{document.hashname}.pdf" 
         
         loader = PyPDFLoader(doc_path)
         pages = []
@@ -75,12 +81,12 @@ class Automata:
     
     def retrieve(self, state : State):
         
-        if state['collection_name']:   
-            self.vector_store = get_vectore_store(collection_name=state['collection_name'])
-        else:
-            self.vector_store = get_vectore_store()
+        self.vector_store = get_vectore_store()
         
-        retrieved_docs = self.vector_store.similarity_search(state['question'], k=2, filter={"collection_owner" : state['collection_name']})
+        retrieved_docs = self.vector_store.similarity_search(state['question'], k=3, filter=state['db_filter'])
+        
+        print(state['db_filter'])
+        
         return retrieved_docs
     
     def retrieve_by_metadata(self, md_filter):

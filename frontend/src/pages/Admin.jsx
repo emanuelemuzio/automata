@@ -8,8 +8,39 @@ function Admin() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editedData, setEditedData] = useState({});
     const navigate = useNavigate();
     const { userRole, isAuthenticated } = useAuth();
+
+    const handleEdit = (user) => {
+        setEditingUser(user.id);
+        setEditedData(user);
+    };
+
+    const handleChange = (e) => {
+        setEditedData({ ...editedData, [e.target.name]: e.target.value });
+    };
+
+    const handleSave = async () => {
+        try {
+
+            const response = await fetchWithAuth("/users/edit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(editedData),
+            });
+
+            if (response.ok) {
+                fetchUsers();
+                setEditingUser(null);
+            }
+        } catch (error) {
+            console.error("Errore nell'aggiornamento dell'utente", error);
+        }
+    };
 
     const [newUser, setNewUser] = useState({ full_name: "", username: "", pwd: "", role: "USER" });
     const [isCreating, setIsCreating] = useState(false);
@@ -40,6 +71,20 @@ function Admin() {
         }
     };
 
+    const handleToggle = async (userId) => {
+        try {
+          const response = await fetchWithAuth(`/user/toggle?user_id=${userId}`, {
+            method: "GET"
+          });
+      
+          if (response.ok) {
+            fetchUsers();  
+          }
+        } catch (error) {
+          console.error("Errore nel toggle dello stato utente", error);
+        }
+      };
+
     const handleDelete = async (userId) => {
         if (!window.confirm("Sei sicuro di voler eliminare questo utente?")) return;
 
@@ -49,7 +94,7 @@ function Admin() {
             });
             if (!response.ok) throw new Error("Errore nella cancellazione dell'utente");
 
-            setUsers(users.filter((user) => user.id !== userId)); 
+            setUsers(users.filter((user) => user.id !== userId));
         } catch (error) {
             console.error("Errore nell'eliminazione dell'utente:", error);
             alert("Errore nell'eliminazione dell'utente");
@@ -59,33 +104,33 @@ function Admin() {
     const handleCreateUser = async () => {
         setIsCreating(true);
         try {
-          const requestBody = {
-            username: newUser.username,
-            full_name: newUser.full_name,
-            pwd: newUser.pwd,  
-            id: null,  
-            disabled: false  
-          };
-    
-          const response = await fetchWithAuth("/users/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(requestBody),
-          });
-    
-          if (!response.ok) throw new Error("Errore nella creazione dell'utente");
-    
-          const createdUser = await response.json();
-          setUsers([...users, createdUser]); 
-          setNewUser({ full_name: "", username: "", pwd: "", role: "USER" });  
-          alert("Utente creato con successo!");
+            const requestBody = {
+                username: newUser.username,
+                full_name: newUser.full_name,
+                pwd: newUser.pwd,
+                id: null,
+                disabled: false
+            };
+
+            const response = await fetchWithAuth("/users/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) throw new Error("Errore nella creazione dell'utente");
+
+            const createdUser = await response.json();
+            setUsers([...users, createdUser]);
+            setNewUser({ full_name: "", username: "", pwd: "", role: "USER" });
+            alert("Utente creato con successo!");
         } catch (error) {
-          console.error("Errore nella creazione dell'utente:", error);
-          alert("Errore nella creazione dell'utente");
+            console.error("Errore nella creazione dell'utente:", error);
+            alert("Errore nella creazione dell'utente");
         } finally {
-          setIsCreating(false);
+            setIsCreating(false);
         }
-      };
+    };
 
     if (loading) return <p>Caricamento utenti...</p>;
     if (error) return <p className="text-danger">{error}</p>;
@@ -95,7 +140,7 @@ function Admin() {
             <h2>Gestione Utenti</h2>
             <table className="table table-hover">
                 <thead>
-                    <tr>
+                    <tr className="text-center">
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Email</th>
@@ -104,25 +149,79 @@ function Admin() {
                     </tr>
                 </thead>
                 <tbody>
-                    {users.length > 0 ? (
-                        users.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.id}</td>
-                                <td>{user.full_name}</td>
-                                <td>{user.username}</td>
-                                <td>{user.role}</td>
+                    {users.map((user) => (
+                        <tr key={user.id} className="text-center">
+                            <td>{user.id}</td>
+                            <td>
+                                {editingUser === user.id ? (
+                                    <input
+                                        type="text"
+                                        name="full_name"
+                                        className="form-control"
+                                        value={editedData.full_name || ""}
+                                        onChange={handleChange}
+                                    />
+                                ) : (
+                                    user.full_name
+                                )}
+                            </td>
+                            <td>
+                                {editingUser === user.id ? (
+                                    <input
+                                        type="email"
+                                        name="username"
+                                        className="form-control"
+                                        value={editedData.username || ""}
+                                        onChange={handleChange}
+                                    />
+                                ) : (
+                                    user.username
+                                )}
+                            </td>
+                            <td>
+                                {editingUser === user.id ? (
+                                    <select
+                                        name="role"
+                                        className="form-select"
+                                        value={editedData.role || "USER"}
+                                        onChange={handleChange}>
+                                        <option value="USER">USER</option>
+                                        <option value="ADMIN">ADMIN</option>
+                                    </select>
+                                ) : (
+                                    user.role
+                                )}
+                            </td>
+                            {editingUser === user.id ? (
                                 <td>
-                                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(user.id)}>
-                                        Elimina
+                                    <button className="btn btn-success" onClick={handleSave}>
+                                        <i className="bi bi-check-circle"></i>
                                     </button>
                                 </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="5" className="text-center">Nessun utente trovato</td>
+                            ) : (
+                                <td>
+                                    <button className="btn btn-primary me-2" title="Modifica" onClick={() => handleEdit(user)}>
+                                        <i className="bi bi-pencil-square"></i>
+                                    </button>
+                                    <button className="btn btn-danger me-2" title="Elimina" onClick={() => handleDelete(user.id)}>
+                                        <i className="bi bi-trash"></i>
+                                    </button>
+                                    <button
+                                        className={`btn ${user.disabled ? "btn-success" : "btn-warning"}`}
+                                        onClick={() => handleToggle(user.id)}>
+
+                                        {
+                                        user.disabled 
+                                            ? 
+                                            <i title="Abilita" className="bi bi-unlock-fill"></i> 
+                                            : 
+                                            <i title="Disabilita" className="bi bi-lock-fill"></i>
+                                        }
+                                    </button>
+                                </td>
+                            )}
                         </tr>
-                    )}
+                    ))}
                 </tbody>
             </table>
 
@@ -176,7 +275,7 @@ function Admin() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

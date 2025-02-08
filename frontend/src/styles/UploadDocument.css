@@ -108,48 +108,4 @@
   .upload-status.error {
     color: var(--error-text-light);
   }
-  
-  /* 🌙 Modalità Scura */
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: var(--background-dark);
-      color: var(--text-dark);
-    }
-  
-    .upload-container {
-      background: var(--background-dark);
-      border: 1px solid var(--border-dark);
-      box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.1);
-    }
-  
-    h2 {
-      color: var(--text-dark);
-    }
-  
-    input[type="file"] {
-      background: var(--input-bg-dark);
-      border: 1px solid var(--input-border-dark);
-      color: var(--text-dark);
-    }
-  
-    .file-name {
-      color: var(--text-dark);
-    }
-  
-    .upload-button {
-      background-color: var(--button-bg-dark);
-    }
-  
-    .upload-button:hover:not(:disabled) {
-      background-color: var(--button-hover-dark);
-    }
-  
-    .upload-status.success {
-      color: var(--success-text-dark);
-    }
-  
-    .upload-status.error {
-      color: var(--error-text-dark);
-    }
-  }
-  
+   

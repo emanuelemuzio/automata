@@ -36,24 +36,24 @@ function Sidebar() {
   };
 
   const handleCreateChat = async () => {
-    setCreating(true);  
+    setCreating(true);
 
     try {
       const response = await fetchWithAuth("/chat/topics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: "Nuova Chat" }),  
+        body: JSON.stringify({ name: "Nuova Chat" }),
       });
 
       if (!response.ok) throw new Error("Errore nella creazione della chat");
 
-      const newChat = await response.json();   
-      setChats([...chats, newChat]);  
-      navigate(`/chat/topics/${newChat.id}`);   
+      const newChat = await response.json();
+      setChats([...chats, newChat]);
+      navigate(`/chat/topics/${newChat.id}`);
     } catch (error) {
       console.error("Errore durante la creazione della chat:", error);
     } finally {
-      setCreating(false);  
+      setCreating(false);
     }
   };
 
@@ -101,11 +101,18 @@ function Sidebar() {
         {userRole.userRole === "ADMIN" && (
           <li className={`nav-item ${location.pathname === "/admin" ? "active" : ""}`}>
             <Link to="/admin" className="nav-link">
-            <i className="bi bi-speedometer me-2"></i>
-            Amministrazione
-          </Link>
+              <i className="bi bi-speedometer me-2"></i>
+              Amministrazione
+            </Link>
           </li>
         )}
+
+        <li className={`nav-item ${location.pathname === "/documents" ? "active" : ""}`}>
+          <Link to="/documents" className="nav-link">
+            <i className="bi bi-file-earmark-pdf me-2"></i>
+            Documenti
+          </Link>
+        </li>
 
       </ul>
 

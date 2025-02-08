@@ -1,0 +1,18 @@
+.table th {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .table td {
+    text-align: center;
+  }
+  
+  .btn {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  input[type="file"] {
+    margin-bottom: 10px;
+  }
+  
