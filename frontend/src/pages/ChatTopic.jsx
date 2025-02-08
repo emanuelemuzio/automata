@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchWithAuth } from "../api/authService";
-import "../styles/Chat.css";
+import "../styles/ChatTopic.css";
 
 function ChatTopic() {
   const { topicId } = useParams();

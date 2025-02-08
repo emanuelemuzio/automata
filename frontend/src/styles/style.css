@@ -1,0 +1,10 @@
+.btn-automata { 
+    background-color: #389FFF !important;
+    color: whitesmoke !important;
+}
+
+.btn-automata a:hover,
+.btn-automata a:focus {
+  background-color: #13385a !important;
+}
+

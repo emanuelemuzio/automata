@@ -10,7 +10,7 @@ function Login() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthenticated = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -50,7 +50,7 @@ function Login() {
             <label htmlFor="floatingPassword">Password</label>
           </div>
 
-          <button className="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+          <button className="w-100 btn btn-lg btn-automata" type="submit">Sign in</button>
         </form>
         {error && <p className="error-message">{error}</p>}
       </div>

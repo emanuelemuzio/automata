@@ -82,10 +82,19 @@ main {
   margin-top: .125rem;
   margin-left: 1.25rem;
   text-decoration: none;
+  color: whitesmoke;
 }
 .btn-toggle-nav a:hover,
 .btn-toggle-nav a:focus {
-  background-color: #d2f4ea;
+  color: #389FFF;
+}
+
+.nav-link {
+  color: #389FFF !important;
+}
+
+.nav-link:hover{
+  color: #297fcf !important;
 }
 
 .scrollarea {
@@ -94,3 +103,5 @@ main {
 
 .fw-semibold { font-weight: 600; }
 .lh-tight { line-height: 1.25; }
+
+.sidebar{ width: 20%; }

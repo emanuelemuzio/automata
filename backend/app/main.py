@@ -46,6 +46,7 @@ def authenticate_user(username: str, password: str):
     user = get_user(username)
     if not user:
         return False
+    print(password, user.pwd)
     if not verify_password(password, user.pwd):
         return False
     return user
@@ -125,10 +126,10 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "role" : user.role}, expires_delta=access_token_expires
     )
     
-    refresh_token = create_access_token({"sub": user.username}, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+    refresh_token = create_access_token({"sub": user.username, "role" : user.role}, timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
 
     return Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
 
@@ -312,7 +313,43 @@ async def get_user_topics(
     topics = session.exec(select(ChatTopic).where(ChatTopic.user_id == current_user.id)).all()
     return topics
 
-@app.get("/chat/topics/{idx}")
+@app.get("/users")
+async def get_user_topics(
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    if(current_user.role == 'ADMIN'):
+        users = session.exec(select(User)).all()
+        return users
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="User is not an admin"
+    )
+    
+@app.get("/user/delete")
+async def get_user_topics(
+    user_id : int,
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    try:
+        if(current_user.role == 'ADMIN'):
+            user = session.exec(select(User).where(User.id == user_id)).one()
+            session.delete(user)
+            session.commit()
+            return 
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User is not an admin"
+        )
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User ID not found"
+        )
+        
+
+@app.get("/chat/topics")
 async def get_user_topics(
     idx : int,
     session: SessionDep, 

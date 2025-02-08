@@ -22,6 +22,7 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     disabled: bool = Field(default=False) 
+    role: str = Field(default='USER')
     
 class UserInDB(UserBase):
     hashed_password: str 
