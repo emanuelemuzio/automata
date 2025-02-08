@@ -81,7 +81,7 @@ class Automata:
     
     def retrieve(self, state : State):
         
-        self.vector_store = get_vectore_store()
+        self.vector_store = get_vectore_store(collection_name=state['collection'])
         
         retrieved_docs = self.vector_store.similarity_search(state['question'], k=3, filter=state['db_filter'])
         

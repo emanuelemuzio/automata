@@ -5,4 +5,5 @@ class State(TypedDict):
     question: str
     context: List[Document]
     answer: str 
+    collection : str
     db_filter: dict

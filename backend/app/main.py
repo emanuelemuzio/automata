@@ -277,7 +277,6 @@ async def get_user_documents(
 @app.post("/chat/messages")
 async def pose_chat_question(
     session: SessionDep,
-    vector_session : VecSessionDep,
     chat_question : ChatRequest,
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
@@ -288,7 +287,7 @@ async def pose_chat_question(
         "user_id" : current_user.id
     }
     
-    state = State({"question" : chat_question.question, "db_filter" : db_filter})
+    state = State({"question" : chat_question.question, "db_filter" : db_filter, "collection" : str(current_user.id)})
     response = automata.invoke(state)
         
     chat_message = Chat(question=question, answer=response['answer'], user_id=current_user.id, topic_id=topic_id)
