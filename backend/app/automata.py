@@ -17,6 +17,7 @@ class Automata:
     llm = None
     docs_root = None
     template = None
+    valid_content_types= None
     
     def __init__(self, template=None):
         self.embeddings = get_embeddings()
@@ -30,6 +31,9 @@ class Automata:
         self.llm = get_llm()
         self.wrapper = get_wrapper()
         self.docs_root = DOCS_ROOT 
+        self.allowed_content_types = [ 
+            "application/pdf"
+        ]
         
     def add_metadata(self, doc_pages, document):
         for doc_p in doc_pages:
