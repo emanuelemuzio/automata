@@ -94,12 +94,17 @@ SessionDep = Annotated[Session, Depends(get_session)]
 VecSessionDep = Annotated[Session, Depends(get_vector_session)]
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",  # ✅ Frontend React in locale
+    "http://frontend:3000",   # ✅ Se il frontend è in Docker
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv('FRONTEND_URL')],  # Modifica con il dominio del tuo frontend
+    allow_origins=origins,  # ✅ Specifica i domini autorizzati
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # ✅ Permette tutti i metodi HTTP (GET, POST, PUT, DELETE)
+    allow_headers=["*"],  # ✅ Permette tutti gli headers HTTP
 )
 
 @app.on_event("startup")
