@@ -5,6 +5,7 @@ from ..model.LangChainCollection import LangChainCollection
 from ..model.LangChainEmbedding import LangChainEmbedding
 from ..service import auth as auth_service
 from ..service.documents import *
+from sqlalchemy.exc import ProgrammingError
 
 def cascade_user(user, session, vector_session):
     document_list = session.exec(select(Document).where(Document.user_id == user.id)).all()
@@ -13,32 +14,40 @@ def cascade_user(user, session, vector_session):
         cascade_document(document, vector_session)
         session.delete(document)
         
-    collection = vector_session.exec(select(LangChainCollection).where(LangChainCollection.name == str(user.id))). one_or_none()
-    
-    if collection:
+    try:    
+        collection = vector_session.exec(select(LangChainCollection).where(LangChainCollection.name == str(user.id))). one_or_none()
         
-        embeddings = vector_session.exec(select(LangChainEmbedding).filter(LangChainEmbedding.collection_id == collection.uuid)).all()
+        if collection is not None:
         
-        for e in embeddings:
-            vector_session.delete(e)
+            embeddings = vector_session.exec(select(LangChainEmbedding).filter(LangChainEmbedding.collection_id == collection.uuid)).all()
             
-        vector_session.delete(collection)
+            for e in embeddings:
+                vector_session.delete(e)
+                
+            vector_session.delete(collection)
+
+    except ProgrammingError:
+        print("Langchain Vector Tables have not been created yet")
         
 def create_new_user(
     username,
     full_name,
     password, 
+    role,
     session
 ):
     user = User(
         username=username,
         full_name=full_name,
-        pwd=password
+        pwd=password,
+        role=role
     )
     
     session.add(user)
     session.commit()
     session.refresh(user)
+    
+    return user
     
 def update_user(user_id, username, full_name, role, session):
     user_entity = session.exec(
@@ -54,7 +63,10 @@ def update_user(user_id, username, full_name, role, session):
     session.commit()
     
 def get_all_users(session):
-    users_list = session.exec(select(User)).all()
+    users_list = session.exec(
+        select(User)
+        .order_by(User.created_at.asc())
+    ).all()
     
     return users_list
 

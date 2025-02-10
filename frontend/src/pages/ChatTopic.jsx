@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { fetchWithAuth } from "../api/authService";
 import "../styles/ChatTopic.css";
 
 function ChatTopic() {
   const { topicId } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ function ChatTopic() {
     } catch (error) {
       setError("Impossibile caricare i messaggi");
       console.error("Errore nella chat:", error);
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -51,8 +53,8 @@ function ChatTopic() {
 
     setSending(true);
     try {
-      const response = await fetchWithAuth(`/chat/messages`, {
-        method: "POST",
+      const response = await fetchWithAuth(`/chat`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: newMessage, topic_id: parseInt(topicId) }),
       });
@@ -95,6 +97,22 @@ function ChatTopic() {
     }
   };
 
+  const handleDeleteTopic = async () => {
+    if (!window.confirm("Sei sicuro di voler eliminare questo topic? L'azione è irreversibile.")) return;
+
+    try {
+      const response = await fetchWithAuth(`/topic?idx=${topicId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Errore nella cancellazione del topic");
+
+      navigate("/dashboard"); 
+    } catch (error) {
+      console.error("Errore durante l'eliminazione del topic:", error);
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleBlurOrSubmit();
@@ -123,6 +141,9 @@ function ChatTopic() {
           </h2>
           <button title="Modifica" className="btn btn-sm rounded-pill btn-success" onClick={handleEditClick}>
             <i className="bi bi-pencil"></i>
+          </button>
+          <button title="Elimina" className="btn btn-sm rounded-pill btn-danger" onClick={handleDeleteTopic}>
+            <i className="bi bi-trash"></i>
           </button>
         </div>
 

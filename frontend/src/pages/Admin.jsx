@@ -42,7 +42,7 @@ function Admin() {
         }
     };
 
-    const [newUser, setNewUser] = useState({ full_name: "", username: "", pwd: "", role: "USER" });
+    const [newUser, setNewUser] = useState({ id: null, full_name: "", username: "", pwd: "", role: "USER" });
     const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
@@ -123,8 +123,9 @@ function Admin() {
 
             const createdUser = await response.json();
             setUsers([...users, createdUser]);
-            setNewUser({ full_name: "", username: "", pwd: "", role: "USER" });
+            setNewUser({ id : null, full_name: "", username: "", pwd: "", role: "USER" });
             alert("Utente creato con successo!");
+            
         } catch (error) {
             console.error("Errore nella creazione dell'utente:", error);
             alert("Errore nella creazione dell'utente");

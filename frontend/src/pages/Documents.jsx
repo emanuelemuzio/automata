@@ -50,7 +50,7 @@ function Documents() {
     setUploading(true);
     const formData = new FormData();
     formData.append("file", selectedFile);
-
+    
     try {
       const response = await fetchWithAuth("/document", {
         method: "PUT",

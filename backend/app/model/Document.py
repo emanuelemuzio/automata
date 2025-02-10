@@ -1,4 +1,5 @@
 from sqlmodel import Field, SQLModel
+from datetime import datetime
 
 class Document(SQLModel, table=True):
     filename: str
@@ -7,3 +8,4 @@ class Document(SQLModel, table=True):
     hashname: str = Field(unique=True)
     visible: bool = Field(default=True)
     user_id: int = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

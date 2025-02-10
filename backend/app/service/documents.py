@@ -37,10 +37,9 @@ def document_upload(file, user_id, username, session):
             
             results = session.exec(
                 select(Document)
-                .where(
-                    Document.filename == file.filename and 
-                    Document.user_id == user_id
-                )).all()
+                .where(Document.filename == file.filename) 
+                .where(Document.user_id == user_id) 
+                ).all()
             
             if len(results) > 0:
                 raise HTTPException(
@@ -62,11 +61,7 @@ def document_upload(file, user_id, username, session):
                                              
             session.add(document)
             session.commit()
-            
-            document = session.exec(select(Document).where(
-                Document.user_id == user_id and
-                Document.filename == file.filename
-            )).one()
+            session.refresh(document)
             
             automata.save_document(document, collection_name)
         else:
@@ -82,10 +77,17 @@ def document_upload(file, user_id, username, session):
             )
         
 def get_user_documents(user_id: int, session) -> Sequence[Document]:
-    document_list = session.exec(select(Document).where(Document.user_id == user_id)).all()
+    
+    document_list = session.exec(
+        select(Document)
+        .where(Document.user_id == user_id)
+        .order_by(Document.created_at.asc())
+    ).all()
+    
     return document_list
 
 def download(document_id : int, user_id : int, session) -> FileResponse:
+    
     document = session.exec(
         select(Document)
         .where(Document.id == document_id)
@@ -103,6 +105,7 @@ def download(document_id : int, user_id : int, session) -> FileResponse:
     return FileResponse(document_path, filename=os.path.basename(document_path), media_type="application/pdf")
 
 def delete(document_id : int, user_id : int, session, vector_session):
+    
     try:
         document = session.exec(
             select(Document)

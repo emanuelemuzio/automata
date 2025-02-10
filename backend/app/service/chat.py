@@ -30,10 +30,8 @@ def invoke_automata(question : str, topic_id : int, user : User, session) -> Cha
 def retrieve_chat_history(topic_id : int, user_id : int, session):
     history = session.exec(
         select(Chat)
-        .where(
-            Chat.topic_id == topic_id and
-            Chat.user_id == user_id
-        )
+        .where(Chat.topic_id == topic_id)
+        .where(Chat.user_id == user_id)
         .order_by(Chat.created_at.asc())
         ).all()
     

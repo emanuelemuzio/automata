@@ -26,13 +26,13 @@ async def create_user(
 ):
     
     try:
-        users_service.create_new_user(
+        return users_service.create_new_user(
             request.username, 
             request.full_name, 
             request.pwd, 
+            request.role,
             session
         ) 
-        return
 
     except IntegrityError:
         raise HTTPException(

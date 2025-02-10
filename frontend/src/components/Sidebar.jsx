@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "../styles/Sidebar.css";
 import Logo from "../components/Logo";
 import useBootstrapTooltip from "../hooks/useBootstrapTooltip";
 import { fetchWithAuth } from "../api/authService";
 import useAuth from "../hooks/useAuth";
+import { Collapse } from "bootstrap";
 
 function Sidebar() {
   const userRole = useAuth();
   const navigate = useNavigate();
   const [chats, setChats] = useState([]);
   const [creating, setCreating] = useState(false);
+  const location = useLocation();
+  const [topics, setTopics] = useState([]);
   useBootstrapTooltip();
+  
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -21,7 +25,27 @@ function Sidebar() {
 
   useEffect(() => {
     fetchChats();
-  }, []);
+    fetchTopics();
+  }, [location.pathname]);
+
+  const fetchTopics = async () => {
+    try {
+      const response = await fetchWithAuth("/topic/by_user");
+      if (!response.ok) throw new Error("Errore nel recupero dei topic");
+      const data = await response.json();
+      setTopics(data);
+
+      if (data.length === 0) {
+        const chatCollapse = document.getElementById("chat-collapse");
+        if (chatCollapse && chatCollapse.classList.contains("show")) {
+          const collapseInstance = Collapse.getOrCreateInstance(chatCollapse);
+          collapseInstance.hide();
+        }
+      }
+    } catch (error) {
+      console.error("Errore nel recupero dei topic:", error);
+    }
+  };
 
   const fetchChats = async () => {
     try {
@@ -55,7 +79,7 @@ function Sidebar() {
     } finally {
       setCreating(false);
     }
-  };
+  }; 
 
   return (
 
@@ -77,7 +101,12 @@ function Sidebar() {
         </li>
 
         <li className={"mb-1"}>
-          <button className={"nav-link primary collapse show"} data-bs-toggle="collapse" data-bs-target="#chat-collapse" aria-expanded="false">
+          <button 
+          className={`nav-link primary collapse show`} 
+          data-bs-toggle={chats.length > 0 ? "collapse" : ""}
+          data-bs-target={chats.length > 0 ? "#chat-collapse" : ""}
+          aria-expanded="false"
+          >
             <i className="bi bi-chat me-2"></i>
             Chat
           </button>
