@@ -1,11 +1,11 @@
-from ..model import LangChainEmbedding
+from ..model.LangChainEmbedding import LangChainEmbedding
 from ..service.auth import *
 from ..service.documents import *
-from sqlalchemy import cast, Integer
+from ..config import *
 from ..model.Document import Document
+from sqlalchemy import cast, Integer
 from uuid import uuid4
 from typing import Sequence
-from ..config import *
 from pathlib import Path
 from sqlalchemy.exc import InternalError
 from fastapi.responses import FileResponse
@@ -26,7 +26,7 @@ def cascade_document(document, vector_session):
         
 def document_upload(file, user_id, username, session): 
     try:
-        if is_valid_content_type(file.content_type):
+        if is_valid_content_type(file.content_type, automata.allowed_content_types):
             
             document = Document(
                 filename=file.filename,
@@ -68,7 +68,7 @@ def document_upload(file, user_id, username, session):
                 Document.filename == file.filename
             )).one()
             
-            # automata.save_document(document, collection_name)
+            automata.save_document(document, collection_name)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -88,17 +88,15 @@ def get_user_documents(user_id: int, session) -> Sequence[Document]:
 def download(document_id : int, user_id : int, session) -> FileResponse:
     document = session.exec(
         select(Document)
-        .where(
-            Document.id == document_id and
-            Document.user_id == user_id
-            )
+        .where(Document.id == document_id)
+        .where(Document.user_id == user_id)
         ).one_or_none()
     
-    if not document:
+    if document is None:
         raise HTTPException(status_code=404, detail="Documento non trovato, record non presente")
-
-    document_path = f"{DOCS_ROOT}/{document.hashname}"
-
+    
+    document_path = f"{DOCS_ROOT}/{document.hashname}.pdf"
+    
     if not os.path.exists(document_path):
         raise HTTPException(status_code=404, detail="Documento non trovato, file non presente")
 
@@ -108,13 +106,11 @@ def delete(document_id : int, user_id : int, session, vector_session):
     try:
         document = session.exec(
             select(Document)
-            .where(
-                Document.id == document_id and
-                Document.user_id == user_id
-                )
-            ).one() 
+            .where(Document.id == document_id) 
+            .where(Document.user_id == user_id)
+        ).one()
+         
     except NoResultFound:
-        print(NoResultFound)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Document not found"

@@ -1,5 +1,8 @@
-from config import *
-from ..model import User, Document, LangChainCollection, LangChainEmbedding
+from ..config import *
+from ..model.User import User
+from ..model.Document import Document
+from ..model.LangChainCollection import LangChainCollection
+from ..model.LangChainEmbedding import LangChainEmbedding
 from ..service import auth as auth_service
 from ..service.documents import *
 
@@ -21,8 +24,18 @@ def cascade_user(user, session, vector_session):
             
         vector_session.delete(collection)
         
-def create_new_user(session, user : User):
-    user.pwd = get_password_hash(user.pwd)
+def create_new_user(
+    username,
+    full_name,
+    password, 
+    session
+):
+    user = User(
+        username=username,
+        full_name=full_name,
+        pwd=password
+    )
+    
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -45,10 +58,10 @@ def get_all_users(session):
     
     return users_list
 
-def delete_user(user_id : int, session):
+def delete_user(user_id : int, session, vector_session):
     user = session.exec(select(User).where(User.id == user_id)).one()
             
-    cascade_user(user)
+    cascade_user(user, session, vector_session)
             
     session.delete(user)
     session.commit()

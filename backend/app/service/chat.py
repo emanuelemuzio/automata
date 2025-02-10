@@ -1,8 +1,7 @@
 from ..model.User import User
 from ..service.auth import *
 from ..service.documents import *
-from sqlalchemy import cast, Integer 
-from ..common import AutomataState
+from ..automata.state import State
 from ..model.Chat import Chat
 from ..response import ChatResponse
 
@@ -12,23 +11,30 @@ def invoke_automata(question : str, topic_id : int, user : User, session) -> Cha
         "user_id" : user.id
     }
     
-    state = AutomataState({
+    state = State({
         "question" : question, 
         "db_filter" : db_filter, 
         "collection" : str(user.id)
     })
     
-    # response = automata.invoke(state)
-    response = {
-        'answer' : 'test'
-    }
-        
-    chat_message = Chat(question=question, answer=response['answer'], user_id=user.id, topic_id=topic_id)
+    response = automata.invoke(state)
     
-    session.add(chat_message)
+    chat = Chat(question=question, answer=response["answer"], user_id=user.id, topic_id=topic_id)
+    
+    session.add(chat)
     session.commit()
-    session.refresh(chat_message)
+    session.refresh(chat)
     
-    chat_response = ChatResponse(answer=response['answer'])
+    return chat
+
+def retrieve_chat_history(topic_id : int, user_id : int, session):
+    history = session.exec(
+        select(Chat)
+        .where(
+            Chat.topic_id == topic_id and
+            Chat.user_id == user_id
+        )
+        .order_by(Chat.created_at.asc())
+        ).all()
     
-    return chat_response
+    return history

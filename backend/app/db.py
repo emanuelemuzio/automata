@@ -1,10 +1,9 @@
 from sqlmodel import Session, SQLModel 
-from db import engine, vector_engine
 from sqlmodel import create_engine
-from config import *
-from typing import Annotated
-from fastapi import Depends 
 from sqlmodel import Session, SQLModel 
+from fastapi import Depends 
+from typing import Annotated
+from .config import *
 
 DB_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB_PG}"
 DB_VECTOR_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB_PGV}"

@@ -1,20 +1,19 @@
-from fastapi import APIRouter
-from automata import Automata
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .router.users import router as users_router
 from .router.auth import router as auth_router
 from .router.documents import router as document_router
 from .router.chat import router as chat_router
+from .router.chattopic import router as chat_topic_router
 from .db import *
 
-automata = Automata(LLM_TEMPLATE)
+app = FastAPI()
 
-app = APIRouter()
-
-app.include_router(users_router)
-app.include_router(chat_router)
-app.include_router(document_router)
 app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(document_router)
+app.include_router(chat_router)
+app.include_router(chat_topic_router)
 
 app.add_middleware(
     CORSMiddleware,
