@@ -19,7 +19,7 @@ function Documents() {
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetchWithAuth("/documents/user_documents");
+      const response = await fetchWithAuth("/document/by_user");
       if (!response.ok) throw new Error("Errore nel recupero dei documenti");
 
       const data = await response.json();
@@ -52,8 +52,8 @@ function Documents() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetchWithAuth("/documents/upload", {
-        method: "POST",
+      const response = await fetchWithAuth("/document", {
+        method: "PUT",
         body: formData,
       });
 
@@ -74,7 +74,7 @@ function Documents() {
     if (!window.confirm("Sei sicuro di voler eliminare questo documento?")) return;
 
     try {
-      const response = await fetchWithAuth(`/documents?document_id=${documentId}`, {
+      const response = await fetchWithAuth(`/document?idx=${documentId}`, {
         method: "DELETE",
       });
 
@@ -90,7 +90,7 @@ function Documents() {
 
   const handleDownload = async (documentId) => {
     try {
-      const response = await fetchWithAuth(`/documents/download?document_id=${documentId}`);
+      const response = await fetchWithAuth(`/document/download?idx=${documentId}`);
       if (!response.ok) throw new Error("Errore nel download del documento");
 
       const blob = await response.blob();
@@ -111,7 +111,7 @@ function Documents() {
   if (error) return <p className="text-danger">{error}</p>;
 
   return (
-    <div className="container mt-4">
+    <div className="container">
       <h2>I tuoi Documenti</h2>
 
       <div>

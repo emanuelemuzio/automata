@@ -25,7 +25,7 @@ function Sidebar() {
 
   const fetchChats = async () => {
     try {
-      const response = await fetchWithAuth("/chat/topics");
+      const response = await fetchWithAuth("/topic/by_user");
       if (!response.ok) throw new Error("Errore nel recupero delle chat");
 
       const data = await response.json();
@@ -39,8 +39,8 @@ function Sidebar() {
     setCreating(true);
 
     try {
-      const response = await fetchWithAuth("/chat/topics", {
-        method: "POST",
+      const response = await fetchWithAuth("/topic", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Nuova Chat" }),
       });

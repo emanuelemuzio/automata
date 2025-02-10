@@ -10,6 +10,9 @@ function ChatTopic() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
+  const [topicName, setTopicName] = useState("Caricamento...");
+  const [newTopicName, setNewTopicName] = useState("");
+  const [editingTopicName, setEditingTopicName] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -18,16 +21,18 @@ function ChatTopic() {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await fetchWithAuth(`/chat/messages?topic_id=${topicId}`);
+      const response = await fetchWithAuth(`/chat?topic_id=${topicId}`);
       if (!response.ok) throw new Error("Errore nel recupero dei messaggi");
 
       const data = await response.json();
 
-      const formattedMessages = data.flatMap((msg) => [
+      const formattedMessages = data.history.flatMap((msg) => [
         { sender: "user", text: msg.question, timestamp: msg.created_at },
         { sender: "bot", text: msg.answer, timestamp: msg.created_at },
       ]);
 
+      setTopicName(data.topic.name);
+      setNewTopicName(data.topic.name);
       setMessages(formattedMessages);
     } catch (error) {
       setError("Impossibile caricare i messaggi");
@@ -35,6 +40,10 @@ function ChatTopic() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = () => {
+    setEditingTopicName(true);
   };
 
   const sendMessage = async () => {
@@ -66,14 +75,59 @@ function ChatTopic() {
     }
   };
 
+  const handleBlurOrSubmit = async () => {
+    setEditingTopicName(false);
+
+    if (newTopicName.trim() && newTopicName !== topicName) {
+      try {
+        const response = await fetchWithAuth(`/topic?idx=${topicId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newTopicName }),
+        });
+
+        if (!response.ok) throw new Error("Errore nell'aggiornamento del topic");
+
+        setTopicName(newTopicName);
+      } catch (error) {
+        console.error("Errore durante l'aggiornamento del nome del topic:", error);
+      }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleBlurOrSubmit();
+    }
+  };
+
   if (loading) return <p>Caricamento chat...</p>;
   if (error) return <p className="text-danger">{error}</p>;
 
   return (
-    <div className="container chat-container mt-4">
-      <h2>Chat Topic #{topicId}</h2>
+    <div className="container chat-container">
+      {editingTopicName ? (
+        <input
+          type="text"
+          className="form-control topic-input"
+          value={newTopicName}
+          onChange={(e) => setNewTopicName(e.target.value)}
+          onBlur={handleBlurOrSubmit}
+          onKeyDown={handleKeyDown}
+          autoFocus
+        />
+      ) : (
+        <div className="title-container">
+          <h2 className="editable-title" >
+            {topicName}
+          </h2>
+          <button title="Modifica" className="btn btn-sm rounded-pill btn-success" onClick={handleEditClick}>
+            <i className="bi bi-pencil"></i>
+          </button>
+        </div>
 
-      {/* Area Messaggi */}
+      )}
+
       <div className="chat-box">
         {messages.length > 0 ? (
           messages.map((msg, index) => (
@@ -89,7 +143,6 @@ function ChatTopic() {
         )}
       </div>
 
-      {/* Input e Bottone di Invio */}
       <div className="input-group mt-3">
         <input
           type="text"

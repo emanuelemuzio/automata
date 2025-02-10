@@ -4,6 +4,7 @@ from fastapi import Depends, APIRouter
 from ..service import chattopic as chat_topic_service
 from ..service.auth import * 
 from ..request.ChatTopicCreate import ChatTopicCreate 
+from ..request.ChatTopicUpdate import ChatTopicUpdate 
 from ..model.ChatTopic import ChatTopic
 
 router = APIRouter() 
@@ -36,3 +37,14 @@ async def get_single_topic(
     
     response = chat_topic_service.get_topic(idx, session)
     return response
+
+@router.post("/topic", tags=['Topic'], description="Route for editing a chat topic")
+async def create_chat_topic(
+    idx : int,
+    request : ChatTopicUpdate, 
+    session: SessionDep, 
+    current_user: UserBase = Depends(get_current_active_user)
+):
+    
+    chat_topic_service.update_chat_topic(request.name, idx, current_user.id, session)
+    return 

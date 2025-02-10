@@ -4,7 +4,6 @@
 }
 
 .chat-box {
-  height: 400px;
   overflow-y: auto;
   border: 1px solid #ddd;
   padding: 10px;
@@ -53,4 +52,17 @@
   display: block;
   text-align: right;
   margin-top: 5px;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;  /* ✅ Allinea il titolo e il bottone verticalmente */
+  gap: 10px;  /* ✅ Distanza tra il titolo e la matita */
+}
+
+.edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
 }

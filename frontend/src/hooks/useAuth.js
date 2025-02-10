@@ -12,10 +12,10 @@ function useAuth() {
 
     try {
       const decodedToken = jwtDecode.jwtDecode(token);
-      const currentTime = Date.now() / 1000; // Convertiamo in secondi 
+      const currentTime = Date.now() / 1000;  
 
       if (decodedToken.exp < currentTime) {
-        return false; // Il token è già scaduto
+        return false;  
       }
       
       setUserRole(decodedToken.role);
@@ -35,7 +35,7 @@ function useAuth() {
       const currentTime = Date.now() / 1000;
       const timeLeft = decodedToken.exp - currentTime;
 
-      if (timeLeft < 300) { // Se mancano meno di 5 minuti alla scadenza, rinnova il token
+      if (timeLeft < 300) {  
         const newToken = await refreshAccessToken();
         if (!newToken) {
           logout();
@@ -58,8 +58,8 @@ function useAuth() {
   }
 
   useEffect(() => {
-    setIsAuthenticated(checkTokenValidity()); // Aggiorna lo stato all'avvio
-    const interval = setInterval(handleTokenRefresh, 120000); // Controlla ogni due minuti
+    setIsAuthenticated(checkTokenValidity());  
+    const interval = setInterval(handleTokenRefresh, 120000);  
     return () => clearInterval(interval);
   }, []);
 

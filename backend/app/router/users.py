@@ -29,7 +29,7 @@ async def create_user(
         users_service.create_new_user(
             request.username, 
             request.full_name, 
-            request.password, 
+            request.pwd, 
             session
         ) 
         return
@@ -95,5 +95,5 @@ async def update_user_password(
     _: Annotated[UserBase, Depends(get_admin_user)]
 ):
     
-    users_service.update_password(request.user_id, request.password, session)
+    users_service.update_password(request.user_id, request.pwd, session)
     return  

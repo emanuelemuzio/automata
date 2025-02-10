@@ -34,3 +34,16 @@ def get_topic(topic_id : int, session):
     ).one_or_none()
     
     return topic
+
+def update_chat_topic(new_name : str, topic_id : int, user_id : int, session):
+    topic = session.exec(
+        select(ChatTopic)
+        .where(ChatTopic.id == topic_id)
+        .where(ChatTopic.user_id == user_id)
+    ).one_or_none()
+    
+    topic.name = new_name
+    
+    session.add(topic)
+    session.commit()
+    session.refresh(topic)

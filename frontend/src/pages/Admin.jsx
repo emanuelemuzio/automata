@@ -9,7 +9,7 @@ function Admin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
-    const [editedData, setEditedData] = useState({});
+    const [editedData, setEditedData] = useState({ "pwd" : null });
     const navigate = useNavigate();
     const { userRole, isAuthenticated } = useAuth();
 
@@ -25,7 +25,7 @@ function Admin() {
     const handleSave = async () => {
         try {
 
-            const response = await fetchWithAuth("/users/edit", {
+            const response = await fetchWithAuth(`/user?idx=${editedData.id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -58,7 +58,7 @@ function Admin() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await fetchWithAuth("/users");
+            const response = await fetchWithAuth("/user/all");
             if (!response.ok) throw new Error("Errore nel recupero utenti");
 
             const data = await response.json();
@@ -73,7 +73,7 @@ function Admin() {
 
     const handleToggle = async (userId) => {
         try {
-          const response = await fetchWithAuth(`/user/toggle?user_id=${userId}`, {
+          const response = await fetchWithAuth(`/user/toggle?idx=${userId}`, {
             method: "GET"
           });
       
@@ -89,8 +89,8 @@ function Admin() {
         if (!window.confirm("Sei sicuro di voler eliminare questo utente?")) return;
 
         try {
-            const response = await fetchWithAuth(`/user/delete?user_id=${userId}`, {
-                method: "GET",
+            const response = await fetchWithAuth(`/user?idx=${userId}`, {
+                method: "DELETE",
             });
             if (!response.ok) throw new Error("Errore nella cancellazione dell'utente");
 
@@ -108,12 +108,13 @@ function Admin() {
                 username: newUser.username,
                 full_name: newUser.full_name,
                 pwd: newUser.pwd,
+                role: newUser.role,
                 id: null,
                 disabled: false
             };
 
-            const response = await fetchWithAuth("/users/create", {
-                method: "POST",
+            const response = await fetchWithAuth("/user", {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
             });
@@ -136,7 +137,7 @@ function Admin() {
     if (error) return <p className="text-danger">{error}</p>;
 
     return (
-        <div className="container mt-4">
+        <div className="container">
             <h2>Gestione Utenti</h2>
             <table className="table table-hover">
                 <thead>

@@ -3,8 +3,6 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateUser from "./pages/CreateUser";
-import UserDocuments from "./pages/UserDocuments";
-import UploadDocuments from "./pages/UploadDocuments";
 import Navbar from "./components/Navbar";
 import ProtectedLayout from "./layouts/ProtectedLayout";
 import ChatTopic from "./pages/ChatTopic";
@@ -22,7 +20,6 @@ function AppRoutes() {
         <Route path="/dashboard" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
         <Route path="/create-user" element={<ProtectedLayout><CreateUser /></ProtectedLayout>} />
         <Route path="/documents" element={<ProtectedLayout><Documents /></ProtectedLayout>} />
-        <Route path="/upload-documents" element={<ProtectedLayout><UploadDocuments /></ProtectedLayout>} />
         <Route path="/chat/topics/:topicId" element={<ProtectedLayout> <ChatTopic /> </ProtectedLayout>} />
         <Route path="/admin" element={<ProtectedLayout> <Admin /> </ProtectedLayout>} />
       </Routes>
