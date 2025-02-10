@@ -39,7 +39,7 @@ def create_new_user(
     user = User(
         username=username,
         full_name=full_name,
-        pwd=password,
+        pwd=get_password_hash(password),
         role=role
     )
     
