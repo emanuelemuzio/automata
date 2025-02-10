@@ -26,3 +26,8 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     create_db_and_tables()
+    
+    openapi_data = app.openapi()
+
+    with open("openapi.json", "w") as file:
+        json.dump(openapi_data, file)
