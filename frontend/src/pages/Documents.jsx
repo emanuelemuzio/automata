@@ -19,14 +19,11 @@ function Documents() {
   const fetchDocuments = async () => {
     setLoading(true);
     try {
-      const response = await fetchWithAuth("/document/by_user");
-      if (!response.ok) throw new Error("Errore nel recupero dei documenti");
+      const data = await fetchWithAuth("/document/by_user");
 
-      const data = await response.json();
       setDocuments(data);
     } catch (error) {
-      setError("Impossibile caricare la lista dei documenti");
-      console.error("Errore nel recupero documenti:", error);
+      alert(error.message)
     } finally {
       setLoading(false);
     }
@@ -52,12 +49,10 @@ function Documents() {
     formData.append("file", selectedFile);
     
     try {
-      const response = await fetchWithAuth("/document", {
+      await fetchWithAuth("/document", {
         method: "PUT",
         body: formData,
       });
-
-      if (!response.ok) throw new Error("Errore durante l'upload del documento");
 
       alert("Documento caricato con successo!");
       setSelectedFile(null);
@@ -74,24 +69,20 @@ function Documents() {
     if (!window.confirm("Sei sicuro di voler eliminare questo documento?")) return;
 
     try {
-      const response = await fetchWithAuth(`/document?idx=${documentId}`, {
+      await fetchWithAuth(`/document?idx=${documentId}`, {
         method: "DELETE",
       });
-
-      if (!response.ok) throw new Error("Errore nell'eliminazione del documento");
 
       setDocuments(documents.filter((doc) => doc.id !== documentId));  
       alert("Documento eliminato con successo!");
     } catch (error) {
-      console.error("Errore nell'eliminazione:", error);
-      alert("Errore nell'eliminazione del documento");
+      alert(error.message);
     }
   };
 
   const handleDownload = async (documentId) => {
     try {
       const response = await fetchWithAuth(`/document/download?idx=${documentId}`);
-      if (!response.ok) throw new Error("Errore nel download del documento");
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -102,8 +93,7 @@ function Documents() {
       a.click();
       document.body.removeChild(a);
     } catch (error) {
-      console.error("Errore nel download:", error);
-      alert("Errore nel download del documento");
+      alert(error.message);
     }
   };
 

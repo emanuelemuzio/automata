@@ -30,9 +30,8 @@ function Sidebar() {
 
   const fetchTopics = async () => {
     try {
-      const response = await fetchWithAuth("/topic/by_user");
-      if (!response.ok) throw new Error("Errore nel recupero dei topic");
-      const data = await response.json();
+      const data = await fetchWithAuth("/topic/by_user");
+
       setTopics(data);
 
       if (data.length === 0) {
@@ -43,19 +42,17 @@ function Sidebar() {
         }
       }
     } catch (error) {
-      console.error("Errore nel recupero dei topic:", error);
+      alert(error.message)
     }
   };
 
   const fetchChats = async () => {
     try {
-      const response = await fetchWithAuth("/topic/by_user");
-      if (!response.ok) throw new Error("Errore nel recupero delle chat");
+      const data = await fetchWithAuth("/topic/by_user");
 
-      const data = await response.json();
       setChats(data);
     } catch (error) {
-      console.error("Errore nel recupero delle chat:", error);
+      alert(error.message)
     }
   };
 
@@ -63,19 +60,17 @@ function Sidebar() {
     setCreating(true);
 
     try {
-      const response = await fetchWithAuth("/topic", {
+      const newChat = await fetchWithAuth("/topic", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Nuova Chat" }),
       });
 
-      if (!response.ok) throw new Error("Errore nella creazione della chat");
-
-      const newChat = await response.json();
       setChats([...chats, newChat]);
       navigate(`/chat/topics/${newChat.id}`);
+
     } catch (error) {
-      console.error("Errore durante la creazione della chat:", error);
+      alert.error(message)
     } finally {
       setCreating(false);
     }

@@ -1,4 +1,6 @@
 import config from "../config";
+import { handleResponse } from "../handlers/errorHandler";
+import { handleDownload } from "../handlers/downloadHandler";
 
 export async function loginUser(username, password) {
   try {
@@ -15,11 +17,8 @@ export async function loginUser(username, password) {
       }),
     });
 
-    if (!response.ok) {
-      throw new Error("Invalid credentials");
-    }
+    const data = await handleResponse(response);
 
-    const data = await response.json();
     return {
       success: true,
       access_token: data.access_token,
@@ -39,42 +38,38 @@ export async function refreshAccessToken() {
     const response = await fetch(`${BACKEND_URL}/refresh-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh_token: refreshToken }), 
-    });
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    }); 
 
-    if (!response.ok) {
-      throw new Error("Failed to refresh token");
-    }
+    const data = await handleResponse(response);
 
-    const data = await response.json();
     localStorage.setItem("token", data.access_token);
     return data.access_token;
   } catch (error) {
-    console.error("Token refresh failed:", error);
-    return null;
+    return { success: false, error: error.message };
   }
 }
 
 export async function fetchWithAuth(url, options = {}) {
-  let token = localStorage.getItem("token");
+  try {
+    let token = localStorage.getItem("token");
 
-  if (!options.headers) options.headers = {};
-  options.headers["Authorization"] = `Bearer ${token}`;
+    if (!options.headers) options.headers = {};
+    options.headers["Authorization"] = `Bearer ${token}`;
 
-  let response = await fetch(`${config.BACKEND_URL}${url}`, options);
+    let response = await fetch(`${config.BACKEND_URL}${url}`, options);
 
-  if (response.status === 401) { // Token scaduto
-    token = await refreshAccessToken();
-    if (!token) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refresh_token");
-      window.location.href = "/login";
-      return;
+    let data;
+
+    if(url.includes("download")){
+      data = await handleDownload(response)
+    } else{
+      data = await handleResponse(response)
     }
 
-    options.headers["Authorization"] = `Bearer ${token}`;
-    response = await fetch(`${config.BACKEND_URL}${url}`, options); // Ritenta la richiesta con il nuovo token
+    return data
   }
-
-  return response;
+  catch (error) {
+    return { success: false, error: error.message };
+  }
 }

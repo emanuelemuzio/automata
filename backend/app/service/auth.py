@@ -92,7 +92,7 @@ def create_token(username : str, role : str) -> Token:
     
     token = Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
     
-    return token
+    return token 
 
 def create_new_access_token(refresh_token : str):
     

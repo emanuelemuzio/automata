@@ -7,11 +7,10 @@ import { useNavigate } from "react-router-dom";
 function Admin() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
-    const [editedData, setEditedData] = useState({ "pwd" : null });
+    const [editedData, setEditedData] = useState({ "pwd": null });
     const navigate = useNavigate();
-    const { userRole, isAuthenticated } = useAuth();
+    const { userRole } = useAuth();
 
     const handleEdit = (user) => {
         setEditingUser(user.id);
@@ -25,7 +24,7 @@ function Admin() {
     const handleSave = async () => {
         try {
 
-            const response = await fetchWithAuth(`/user?idx=${editedData.id}`, {
+            await fetchWithAuth(`/user?idx=${editedData.id}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -33,12 +32,11 @@ function Admin() {
                 body: JSON.stringify(editedData),
             });
 
-            if (response.ok) {
-                fetchUsers();
-                setEditingUser(null);
-            }
+            fetchUsers();
+            setEditingUser(null);
+
         } catch (error) {
-            console.error("Errore nell'aggiornamento dell'utente", error);
+            alert(error.message)
         }
     };
 
@@ -58,14 +56,12 @@ function Admin() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const response = await fetchWithAuth("/user/all");
-            if (!response.ok) throw new Error("Errore nel recupero utenti");
-
-            const data = await response.json();
+            const data = await fetchWithAuth("/user/all");
+            
             setUsers(data);
+
         } catch (error) {
-            setError("Impossibile caricare la lista utenti");
-            console.error("Errore nel recupero utenti:", error);
+            alert(error.message)
         } finally {
             setLoading(false);
         }
@@ -73,28 +69,27 @@ function Admin() {
 
     const handleToggle = async (userId) => {
         try {
-          const response = await fetchWithAuth(`/user/toggle?idx=${userId}`, {
-            method: "GET"
-          });
-      
-          if (response.ok) {
-            fetchUsers();  
-          }
+            await fetchWithAuth(`/user/toggle?idx=${userId}`, {
+                method: "GET"
+            }); 
+            
+            fetchUsers();
+
         } catch (error) {
-          console.error("Errore nel toggle dello stato utente", error);
+            console.error("Errore nel toggle dello stato utente", error);
         }
-      };
+    };
 
     const handleDelete = async (userId) => {
         if (!window.confirm("Sei sicuro di voler eliminare questo utente?")) return;
 
         try {
-            const response = await fetchWithAuth(`/user?idx=${userId}`, {
+            await fetchWithAuth(`/user?idx=${userId}`, {
                 method: "DELETE",
             });
-            if (!response.ok) throw new Error("Errore nella cancellazione dell'utente");
 
             setUsers(users.filter((user) => user.id !== userId));
+
         } catch (error) {
             console.error("Errore nell'eliminazione dell'utente:", error);
             alert("Errore nell'eliminazione dell'utente");
@@ -113,29 +108,24 @@ function Admin() {
                 disabled: false
             };
 
-            const response = await fetchWithAuth("/user", {
+            const createdUser = await fetchWithAuth("/user", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
             });
 
-            if (!response.ok) throw new Error("Errore nella creazione dell'utente");
-
-            const createdUser = await response.json();
             setUsers([...users, createdUser]);
-            setNewUser({ id : null, full_name: "", username: "", pwd: "", role: "USER" });
+            setNewUser({ id: null, full_name: "", username: "", pwd: "", role: "USER" });
             alert("Utente creato con successo!");
-            
+
         } catch (error) {
-            console.error("Errore nella creazione dell'utente:", error);
-            alert("Errore nella creazione dell'utente");
+            alert(error.message);
         } finally {
             setIsCreating(false);
         }
     };
 
     if (loading) return <p>Caricamento utenti...</p>;
-    if (error) return <p className="text-danger">{error}</p>;
 
     return (
         <div className="container">
@@ -213,11 +203,11 @@ function Admin() {
                                         onClick={() => handleToggle(user.id)}>
 
                                         {
-                                        user.disabled 
-                                            ? 
-                                            <i title="Abilita" className="bi bi-unlock-fill"></i> 
-                                            : 
-                                            <i title="Disabilita" className="bi bi-lock-fill"></i>
+                                            user.disabled
+                                                ?
+                                                <i title="Abilita" className="bi bi-unlock-fill"></i>
+                                                :
+                                                <i title="Disabilita" className="bi bi-lock-fill"></i>
                                         }
                                     </button>
                                 </td>

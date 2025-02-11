@@ -4,11 +4,15 @@ import { refreshAccessToken } from "../api/authService";
 
 function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true)
   const [userRole, setUserRole] = useState(null);
 
   function checkTokenValidity() {
+    setIsLoading(true);
     const token = localStorage.getItem("token");
-    if (!token) return false; 
+    if (!token) {
+      return false
+    }; 
 
     try {
       const decodedToken = jwtDecode.jwtDecode(token);
@@ -21,8 +25,9 @@ function useAuth() {
       setUserRole(decodedToken.role);
       return true;
     } catch (error) {
-      console.log(error)
       return false;
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -63,7 +68,7 @@ function useAuth() {
     return () => clearInterval(interval);
   }, []);
 
-  return { isAuthenticated, userRole, logout };
+  return { isAuthenticated, userRole, logout, isLoading };
 }
 
 export default useAuth;

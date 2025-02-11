@@ -22,10 +22,7 @@ function ChatTopic() {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const response = await fetchWithAuth(`/chat?topic_id=${topicId}`);
-      if (!response.ok) throw new Error("Errore nel recupero dei messaggi");
-
-      const data = await response.json();
+      const data = await fetchWithAuth(`/chat?topic_id=${topicId}`);
 
       const formattedMessages = data.history.flatMap((msg) => [
         { sender: "user", text: msg.question, timestamp: msg.created_at },
@@ -36,8 +33,7 @@ function ChatTopic() {
       setNewTopicName(data.topic.name);
       setMessages(formattedMessages);
     } catch (error) {
-      setError("Impossibile caricare i messaggi");
-      console.error("Errore nella chat:", error);
+      alert(error.message);
       navigate("/dashboard");
     } finally {
       setLoading(false);
@@ -53,16 +49,12 @@ function ChatTopic() {
 
     setSending(true);
     try {
-      const response = await fetchWithAuth(`/chat`, {
+      const generatedResponse = await fetchWithAuth(`/chat`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: newMessage, topic_id: parseInt(topicId) }),
       });
-
-      if (!response.ok) throw new Error("Errore nella generazione della risposta");
-
-      const generatedResponse = await response.json();
-
+ 
       setMessages([
         ...messages,
         { sender: "user", text: newMessage, timestamp: new Date().toISOString() },
@@ -71,7 +63,7 @@ function ChatTopic() {
 
       setNewMessage("");
     } catch (error) {
-      console.error("Errore nell'invio del messaggio:", error);
+      alert.error(error.message)
     } finally {
       setSending(false);
     }
@@ -82,13 +74,11 @@ function ChatTopic() {
 
     if (newTopicName.trim() && newTopicName !== topicName) {
       try {
-        const response = await fetchWithAuth(`/topic?idx=${topicId}`, {
+        await fetchWithAuth(`/topic?idx=${topicId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newTopicName }),
         });
-
-        if (!response.ok) throw new Error("Errore nell'aggiornamento del topic");
 
         setTopicName(newTopicName);
       } catch (error) {
@@ -101,11 +91,9 @@ function ChatTopic() {
     if (!window.confirm("Sei sicuro di voler eliminare questo topic? L'azione è irreversibile.")) return;
 
     try {
-      const response = await fetchWithAuth(`/topic?idx=${topicId}`, {
+      await fetchWithAuth(`/topic?idx=${topicId}`, {
         method: "DELETE",
-      });
-
-      if (!response.ok) throw new Error("Errore nella cancellazione del topic");
+      }); 
 
       navigate("/dashboard"); 
     } catch (error) {
