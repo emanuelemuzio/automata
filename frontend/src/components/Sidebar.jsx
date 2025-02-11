@@ -130,7 +130,7 @@ function Sidebar() {
         {userRole.userRole === "ADMIN" && (
           <li className={`nav-item ${location.pathname === "/admin" ? "active" : ""}`}>
             <Link to="/admin" className="nav-link">
-              <i className="bi bi-speedometer me-2"></i>
+              <i className="bi bi-people me-2"></i>
               Amministrazione
             </Link>
           </li>
