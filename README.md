@@ -8,28 +8,6 @@ Il progetto si è evoluto dall'idea iniziale fino a diventare un sistema complet
 
 Oltre all'utilità pratica, lo sviluppo di Automata è stato un'opportunità per esplorare il mondo dell'AI generativa, dei sistemi basati su RAG e della gestione avanzata delle informazioni attraverso modelli pre-addestrati e database vettoriali.
 
-## Sfide affrontate ##
-
-La realizzazione di Automata ha presentato diverse sfide tecniche:
-
-- *Interfaccia frontend dinamica*: Non avendo esperienza con React, la creazione di un'interfaccia funzionale, con autenticazione e aggiornamento dinamico dei componenti, è stata una delle prime difficoltà da superare.
-- *Backend con FastAPI*: L'approccio a FastAPI, un framework moderno per lo sviluppo di API con Python, ha richiesto un approfondimento su aspetti avanzati come la gestione dell'autenticazione con JWT, la connessione con PostgreSQL + pgvector e l'integrazione con Ollama per l'AI.
-- *Containerizzazione con Docker*: La necessità di un'architettura modulare ha reso indispensabile l'uso di Docker, richiedendo una configurazione accurata per gestire al meglio l'integrazione tra i vari servizi e il supporto GPU per l'AI.
-
-## Obiettivi futuri ##
-
-Lo sviluppo di Automata è ancora in corso e gli obiettivi futuri includono:
-
-- *Miglioramento della gestione dei documenti vettorializzati*
-- *Ottimizzazione della creazione dei chunk di testo per garantire risposte più precise*
-- *Miglioramento dell'indicizzazione vettoriale con strategie avanzate di filtraggio per metadati*
-
-Nuove funzionalità avanzate:
-- *Implementazione di un sistema di sintesi documentale, per generare riassunti e insight dai documenti caricati*
-- *Supporto a più modelli AI*, per permettere all'utente di selezionare l'LLM più adatto alla propria esigenza.
-
-Automata è solo all'inizio: il progetto continuerà a evolversi, puntando a diventare uno strumento sempre più potente e intuitivo per chi studia e lavora con grandi quantità di informazioni.
-
 ## Tecnologie Utilizzate ##
 - **Backend**: FastAPI e LangChain
 - **Frontend**: React + Bootstrap
@@ -68,3 +46,25 @@ La lista completa degli endpoint è disponibile in vari formati:
 
 - Una volta avviata l'applicazione, è possibile visitare l'endpoint url:8000/docs per consultare lo swagger autogenerato da fastapi
 - Alternativamente, il file ```/backend/openapi.json``` viene generato a ogni avvio dell'applicazione, e può essere utilizzato per generare un file HTML consultabile in ```/backend/swagger/index.html```.
+
+## Sfide affrontate ##
+
+La realizzazione di Automata ha presentato diverse sfide tecniche:
+
+- *Interfaccia frontend dinamica*: Non avendo esperienza con React, la creazione di un'interfaccia funzionale, con autenticazione e aggiornamento dinamico dei componenti, è stata una delle prime difficoltà da superare.
+- *Backend con FastAPI*: L'approccio a FastAPI, un framework moderno per lo sviluppo di API con Python, ha richiesto un approfondimento su aspetti avanzati come la gestione dell'autenticazione con JWT, la connessione con PostgreSQL + pgvector e l'integrazione con Ollama per l'AI.
+- *Containerizzazione con Docker*: La necessità di un'architettura modulare ha reso indispensabile l'uso di Docker, richiedendo una configurazione accurata per gestire al meglio l'integrazione tra i vari servizi e il supporto GPU per l'AI.
+
+## Obiettivi futuri ##
+
+Lo sviluppo di Automata è ancora in corso e gli obiettivi futuri includono:
+
+- *Miglioramento della gestione dei documenti vettorializzati*
+- *Ottimizzazione della creazione dei chunk di testo per garantire risposte più precise*
+- *Miglioramento dell'indicizzazione vettoriale con strategie avanzate di filtraggio per metadati*
+
+Nuove funzionalità avanzate:
+- *Implementazione di un sistema di sintesi documentale, per generare riassunti e insight dai documenti caricati*
+- *Supporto a più modelli AI*, per permettere all'utente di selezionare l'LLM più adatto alla propria esigenza.
+
+Automata è solo all'inizio: il progetto continuerà a evolversi, puntando a diventare uno strumento sempre più potente e intuitivo per chi studia e lavora con grandi quantità di informazioni.
