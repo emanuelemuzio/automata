@@ -1,6 +1,5 @@
 ﻿# Automata
 
- ![Alt text](./frontend/public/logo.svg)
 <img src="./frontend/public/logo.svg">
 
 L'idea alla base di Automata nasce dal desiderio di creare uno strumento che potesse aiutare gli studenti nello studio, permettendo loro di caricare riassunti e documenti su una piattaforma e interrogare un modello di Intelligenza Artificiale in grado di fornire risposte mirate e specializzate. 
