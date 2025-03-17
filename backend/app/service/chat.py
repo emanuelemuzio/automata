@@ -1,25 +1,19 @@
 from ..model.User import User
 from ..service.auth import *
 from ..service.documents import *
-from ..automata.state import State
 from ..model.Chat import Chat
 from ..response import ChatResponse
+from ..automata import ai
 
-def invoke_automata(question : str, topic_id : int, user : User, session) -> ChatResponse:
+def invoke(question : str, topic_id : int, user : User, session) -> ChatResponse:
     
-    db_filter = {
+    metadata = {
         "user_id" : user.id
     }
     
-    state = State({
-        "question" : question, 
-        "db_filter" : db_filter, 
-        "collection" : str(user.id)
-    })
+    response = ai.invoke(question=question, metadata=metadata)
     
-    response = automata.invoke(state)
-    
-    chat = Chat(question=question, answer=response["answer"], user_id=user.id, topic_id=topic_id)
+    chat = Chat(question=question, answer=response, user_id=user.id, topic_id=topic_id)
     
     session.add(chat)
     session.commit()

@@ -3,6 +3,7 @@ from ..service.auth import *
 from ..service.documents import *
 from ..config import *
 from ..model.Document import Document
+from ..automata.ai import *
 from sqlalchemy import cast, Integer
 from uuid import uuid4
 from typing import Sequence
@@ -26,7 +27,7 @@ def cascade_document(document, vector_session):
         
 def document_upload(file, user_id, username, session): 
     try:
-        if is_valid_content_type(file.content_type, automata.allowed_content_types):
+        if is_valid_content_type(file.content_type, allowed_content_types):
             
             document = Document(
                 filename=file.filename,
@@ -63,7 +64,7 @@ def document_upload(file, user_id, username, session):
             session.commit()
             session.refresh(document)
             
-            automata.save_document(document, collection_name)
+            save_document(document, collection_name)
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -125,4 +126,4 @@ def delete(document_id : int, user_id : int, session, vector_session):
     vector_session.commit()
     session.commit()
     
-    os.remove(f"{DOCS_ROOT}/{document.hashname}.pdf")
+    os.remove(f"{DOCS_ROOT}/{document.hashname}.pdf") 

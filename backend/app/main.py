@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .db import *
+from .config import *
+from .automata import * 
 from .router.users import router as users_router
 from .router.auth import router as auth_router
 from .router.documents import router as document_router
 from .router.chat import router as chat_router
 from .router.chattopic import router as chat_topic_router
-from .db import *
 
 app = FastAPI()
 

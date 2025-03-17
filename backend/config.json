@@ -4,7 +4,7 @@
         "LLM_TEMPERATURE": "0",
         "LLM_TEMPLATE" : "template-1",
         "DOCS_ROOT": "docs",
-        "RAG_PROMPT": "rlm/rag-prompt",
+        "PROMPT": "hwchase17/react",
         "POSTGRES_USER": "automatauser",
         "POSTGRES_PASSWORD": "automatapassword",
         "POSTGRES_DB_PGV": "pgvdb",
@@ -15,14 +15,16 @@
         "ALGORITHM": "HS256",
         "ACCESS_TOKEN_EXPIRE_MINUTES": "120",
         "FRONTEND_URL": "http://frontend:80",
-        "REFRESH_TOKEN_EXPIRE_DAYS": "7"
+        "REFRESH_TOKEN_EXPIRE_DAYS": "7",
+        "LANGUAGE" : "italiano",
+        "MODEL_PROVIDER" : "ollama"
     },
     "local": {
         "LLM_MODEL": "llama3.1",
         "LLM_TEMPERATURE": "0",
         "LLM_TEMPLATE" : "template-1",
         "DOCS_ROOT": "docs",
-        "RAG_PROMPT": "rlm/rag-prompt",
+        "PROMPT": "hwchase17/react",
         "POSTGRES_USER": "automatauser",
         "POSTGRES_PASSWORD": "automatapassword",
         "POSTGRES_DB_PGV": "pgvdb",
@@ -33,6 +35,8 @@
         "ALGORITHM": "HS256",
         "ACCESS_TOKEN_EXPIRE_MINUTES": "120",
         "FRONTEND_URL": "http://localhost:3000",
-        "REFRESH_TOKEN_EXPIRE_DAYS": "7"
+        "REFRESH_TOKEN_EXPIRE_DAYS": "7",
+        "LANGUAGE" : "italiano",
+        "MODEL_PROVIDER" : "ollama"
     }
 }

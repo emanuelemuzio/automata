@@ -15,7 +15,7 @@ async def pose_chat_question(
     current_user: Annotated[UserBase, Depends(get_current_active_user)]
 ):
 
-    response = chat_service.invoke_automata(request.question, request.topic_id, current_user, session) 
+    response = chat_service.invoke(request.question, request.topic_id, current_user, session) 
     return response
 
 @router.get("/chat", tags=['Chat'], description="Route for retrieving a topic message history in chronological order")

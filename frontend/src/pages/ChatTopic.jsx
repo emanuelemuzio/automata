@@ -142,7 +142,7 @@ function ChatTopic() {
           messages.map((msg, index) => (
             <div key={index} className={`message-container ${msg.sender === "user" ? "user-message-container" : "bot-message-container"}`}>
               <div className={`message ${msg.sender === "user" ? "user-message" : "bot-message"}`}>
-                <strong>{msg.sender === "user" ? "Tu" : "Bot"}:</strong> {msg.text}
+                {msg.text}
                 <small className="timestamp">{new Date(msg.timestamp).toLocaleString()}</small>
               </div>
             </div>
