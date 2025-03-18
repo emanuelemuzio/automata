@@ -3,18 +3,20 @@ from uuid import uuid4
 from langchain_postgres import PGVector
 from langchain_ollama import OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import ChatOllama
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.chat_models import init_chat_model
 from langgraph.prebuilt import create_react_agent
-from langchain_core.messages import HumanMessage
+from sqlmodel import create_engine, select, Session
+
 from ..config import *
+from ..model.Chat import Chat
 from .template import templates
 
 embeddings = OllamaEmbeddings(model=LLM_MODEL)
+DB_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB_PG}"
 
 def get_text_splitter():
     text_splitter = RecursiveCharacterTextSplitter(
@@ -88,13 +90,37 @@ def retrieve_document_context(user_id: int, question: str) -> str:
     """
     
     vector_store = get_vectore_store(str(user_id))
-    query_result, scores = zip(*vector_store.similarity_search_with_score(query="Emanuele Muzio", k=3, filter={"user_id" : 3}))
+    query_result, scores = zip(*vector_store.similarity_search_with_score(query=question, k=3, filter={"user_id" : user_id}))
     
     context = "\n\n".join(doc.page_content for (doc, score) in zip(query_result, scores) if score > .5)
     
     return context
 
-tools = [retrieve_document_context]
+@tool
+def retrieve_conversation_context(topic_id: int) -> str:
+    """Returns the past conversational/topic context, perfect to use if you are asked questions about the past
+
+    Args:
+        topic_id (int): the ID of the conversation.
+    """
+    
+    engine = create_engine(DB_URL)
+    with Session(engine) as session:
+        result  = session.exec(
+            select(Chat)
+            .where(Chat.topic_id == topic_id)
+            .order_by(Chat.created_at.asc())
+        ).all()
+        
+        history = []
+        
+        for r in result:
+            history.append("User: " + r.question)
+            history.append("AI: " + r.answer)
+            
+        return "In the past, we had this exact conversation. You are the AI and i am the human: \n\n".join(history)
+
+tools = [retrieve_document_context, retrieve_conversation_context]
 
 def create_chat_model():
     chat_model = init_chat_model(LLM_MODEL, model_provider=MODEL_PROVIDER)
@@ -108,19 +134,24 @@ def create_agent():
 
 def metadata_to_context(metadata:dict) -> str:
     return " ".join([f"{x} : {y}" for (x, y) in metadata.items()])
-    
+
 def invoke(question : str, metadata : dict):
     
     context = metadata_to_context(metadata=metadata)
     agent = create_agent()
+        
     prompt = ChatPromptTemplate.from_template(template=templates[LLM_TEMPLATE]).invoke({
         "question" : question,
         "language" : LANGUAGE,
-        "context" : context
+        "context" : context,
     })
      
     result = agent.invoke(prompt) 
     
+    print(result)
+    
     return result["messages"][-1].content  
 
-#TODO: Aggiungere memoria
+from langgraph.checkpoint.memory import MemorySaver
+
+memory = MemorySaver()

@@ -8,10 +8,11 @@ from ..automata import ai
 def invoke(question : str, topic_id : int, user : User, session) -> ChatResponse:
     
     metadata = {
-        "user_id" : user.id
+        "user_id" : user.id,
+        "topic_id" : topic_id
     }
     
-    response = ai.invoke(question=question, metadata=metadata)
+    response = ai.invoke(question=question, metadata=metadata) 
     
     chat = Chat(question=question, answer=response, user_id=user.id, topic_id=topic_id)
     
