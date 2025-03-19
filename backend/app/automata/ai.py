@@ -12,7 +12,7 @@ from langgraph.prebuilt import create_react_agent
 from sqlmodel import create_engine, select, Session
 
 from ..config import *
-from ..model.Chat import Chat
+from ..model.Chat import Chat 
 from .template import templates
 
 embeddings = OllamaEmbeddings(model=LLM_MODEL)
@@ -20,8 +20,8 @@ DB_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POS
 
 def get_text_splitter():
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=100,  
-        chunk_overlap=20,  
+        chunk_size=1000,  
+        chunk_overlap=200,  
         add_start_index=True,   
     )
         
@@ -52,9 +52,20 @@ def split_docs(documents):
     return text_splitter.split_documents(documents) 
 
 def add_metadata(doc_pages, document):
+    llm = create_chat_model()
+    
     for doc_p in doc_pages:
+        
+        prompt = ChatPromptTemplate.from_template(template=templates["summarization"]).invoke({
+            "language" : LANGUAGE,
+            "input" : doc_p.page_content,
+        })
+        
+        result = llm.invoke(prompt).content
+        
         doc_p.metadata['user_id'] = document.user_id
         doc_p.metadata['document_id'] = document.id
+        doc_p.metadata['summary'] = result
         
     return doc_pages
 
@@ -90,7 +101,7 @@ def retrieve_document_context(user_id: int, question: str) -> str:
     """
     
     vector_store = get_vectore_store(str(user_id))
-    query_result, scores = zip(*vector_store.similarity_search_with_score(query=question, k=3, filter={"user_id" : user_id}))
+    query_result, scores = zip(*vector_store.similarity_search_with_score(query=question, k=5, filter={"user_id" : user_id}))
     
     context = "\n\n".join(doc.page_content for (doc, score) in zip(query_result, scores) if score > .5)
     
@@ -120,16 +131,12 @@ def retrieve_conversation_context(topic_id: int) -> str:
             
         return "In the past, we had this exact conversation. You are the AI and i am the human: \n\n".join(history)
 
-tools = [retrieve_document_context, retrieve_conversation_context]
-
 def create_chat_model():
     chat_model = init_chat_model(LLM_MODEL, model_provider=MODEL_PROVIDER)
-    
-    return chat_model.bind_tools(tools) 
+    return chat_model 
 
 def create_agent():
-    agent = create_react_agent(create_chat_model(), tools)
-    
+    agent = create_react_agent(create_chat_model().bind_tools(tools), tools)
     return agent
 
 def metadata_to_context(metadata:dict) -> str:
@@ -145,13 +152,9 @@ def invoke(question : str, metadata : dict):
         "language" : LANGUAGE,
         "context" : context,
     })
-     
-    result = agent.invoke(prompt) 
     
-    print(result)
+    result = agent.invoke(prompt) 
     
     return result["messages"][-1].content  
 
-from langgraph.checkpoint.memory import MemorySaver
-
-memory = MemorySaver()
+tools = [retrieve_document_context, retrieve_conversation_context]
